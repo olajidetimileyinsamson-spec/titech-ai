@@ -25,7 +25,7 @@ def ask():
     if l in ['hi','hello','hey']:
         import datetime
         hr = datetime.datetime.now().hour
-        g = "morning" if hr<12 else "afternoon" if hr<17 else "evening" if hr<21 else "night"
+        g = "morning" if hr<12 else "afternoon" if hr<17 else "evening"
         return jsonify(answer=f"Good {g}! I'm Titech AI. What should we do today?")
     if 'who are you' in l:
         return jsonify(answer="I'm Titech AI, built by Timileyin Samson!")
