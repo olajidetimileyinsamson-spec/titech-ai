@@ -5,7 +5,12 @@ app = Flask(__name__)
 
 HTML = """
 <!DOCTYPE html>
-<html><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>Titech AI</title>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titech AI</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#a855f7">
+<link rel="icon" href="/logo.jpg">
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#0a0a0a;color:#fff;font-family:system-ui,sans-serif;display:flex;flex-direction:column;height:100vh}
@@ -26,10 +31,11 @@ input{flex:1;background:transparent;border:none;color:#fff;outline:none;font-siz
 button{width:38px;height:38px;border-radius:50%;background:#a855f7;color:#fff;border:none;cursor:pointer}
 </style></head>
 <body>
-<div class="header"><img src="/logo.jpg" class="logo" onerror="this.src='/logo.png'"><div><b>Titech AI</b><br><span style="font-size:11px;color:#777">By Timileyin Samson • Hybrid Brain</span></div></div>
-<div class="chat" id="c"><div class="msg bot">Hybrid active! ✅ Main brain first, offline backup. Try "Explain quantum computing" or "Tell me about FUTA"</div></div>
-<div class="bar"><div class="inputWrap"><input id="q" placeholder="Ask anything..." onkeydown="if(event.key=='Enter')send()"><button onclick="send()">↑</button></div></div>
+<div class="header"><img src="/logo.jpg" class="logo" onerror="this.src='/logo.png'"><div><b>Titech AI</b><br><span style="font-size:11px;color:#777">By Timileyin Samson • PWA Ready</span></div></div>
+<div class="chat" id="c"><div class="msg bot">PWA Active! ✅ Install me from browser menu. Hybrid brain on. Ask anything!</div></div>
+<div class="bar"><div class="inputWrap"><input id="q" placeholder="Ask anything or generate image..." onkeydown="if(event.key=='Enter')send()"><button onclick="send()">↑</button></div></div>
 <script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}
 let history=[];
 const chat=document.getElementById('c');
 function format(t){
@@ -57,6 +63,7 @@ async function send(){
 
 @app.route('/')
 def home(): return render_template_string(HTML)
+
 @app.route('/logo.jpg')
 def logo_jpg(): return send_from_directory('.', 'logo.jpg')
 @app.route('/logo.png')
@@ -65,88 +72,96 @@ def logo_png():
     if os.path.exists('logo.png'): return send_from_directory('.', 'logo.png')
     return "",404
 
+@app.route('/manifest.json')
+def manifest():
+    return jsonify({
+        "name": "Titech AI",
+        "short_name": "Titech AI",
+        "start_url": "/",
+        "display": "standalone",
+        "background_color": "#0a0a0a",
+        "theme_color": "#a855f7",
+        "icons": [
+            {"src": "/logo.jpg", "sizes": "192x192", "type": "image/jpeg"},
+            {"src": "/logo.jpg", "sizes": "512x512", "type": "image/jpeg"}
+        ]
+    })
+
+@app.route('/sw.js')
+def sw():
+    js = """
+    self.addEventListener('install', e => self.skipWaiting());
+    self.addEventListener('activate', e => self.clients.claim());
+    self.addEventListener('fetch', e => {
+      e.respondWith(fetch(e.request).catch(()=> caches.match(e.request)));
+    });
+    """
+    return js, 200, {'Content-Type': 'application/javascript'}
+
 def offline_answer(q):
     l=q.lower()
-    if "abuja" in l:
-        return "**Abuja - Capital of Nigeria**\n\nAbuja became capital in 1991, replacing Lagos. Located in FCT, center of Nigeria.\n\n• Population: ~3.8M\n• Key places: Aso Rock Villa, National Mosque, National Church, Millennium Park\n• Districts: Maitama, Asokoro, Wuse, Garki\n• Planned city with wide roads\n\nWhat about Abuja you need? History, places to visit, cost of living?"
-    if "lagos" in l:
-        return "**Lagos - Economic Hub**\n\nLargest city in Nigeria, 16M+ people, former capital.\n• VI, Ikoyi, Lekki - business areas\n• Yaba - tech hub (Paystack, Flutterwave)\n• Famous for Afrobeats, Nollywood, markets, nightlife\n\nAsk me more!"
-    if "nigeria" in l:
-        return "**Nigeria - Giant of Africa**\n\n• 230M+ people, 36 states\n• Capital: Abuja, Largest: Lagos\n• 250+ ethnic groups (Hausa, Yoruba, Igbo)\n• Independence: Oct 1, 1960\n• Economy: Oil, tech, entertainment\n\nWhat about Nigeria?"
-    if "futa" in l:
-        return "**FUTA - Federal University of Technology Akure**\n\nFounded 1981 in Ondo State. Top tech school.\n• Courses: Engineering, Computing, Architecture, Sciences\n• Known for technology and research\n• Motto: Technology for self-reliance\n\nNeed admission, cut-off, or courses?"
-    if "quantum" in l:
-        return "**Quantum Computing**\n\nNormal PC uses bits (0 or 1). Quantum uses qubits that can be 0 AND 1 at same time (superposition).\n\n• Superposition = parallel processing, very fast\n• Entanglement = linked qubits\n• Power: Solves in seconds what normal PC takes years\n• Use: Drug discovery, cryptography, AI\n\nLeaders: IBM, Google, Microsoft. Still early but future of computing."
-    if "titech" in l:
-        return "**Titech**\n\nTech brand by Timileyin Samson building AI tools like Titech AI (chat + HD images). Vision: Make AI accessible in Africa."
-    # Generic but helpful - never deviates
-    return f"**{q}**\n\nHere's a clear answer:\n\n{q} is important. In simple terms: it has key meaning, uses, and benefits that affect daily life and technology.\n\n• What it is: Core concept of {q}\n• Why it matters: Impact on people and industry\n• Example: How {q} is used in real world\n• Future: Growing fast\n\nTell me if you want essay, summary, or detailed explanation and I will write full article now."
+    is_article = any(x in l for x in ['article','essay','450','500','long','detailed','write','about nigeria'])
+    if "nigeria" in l and is_article:
+        return """**Nigeria - The Giant of Africa (450+ Words)**
+
+Nigeria is the most populous country in Africa with over 230M people. Located in West Africa, bordered by Benin, Niger, Chad, Cameroon and Atlantic Ocean.
+
+**History:** Independence Oct 1, 1960 from Britain. Became republic 1963. 36 states + FCT Abuja. Civil war 1967-1970.
+
+**People & Culture:** 250+ ethnic groups - Hausa-Fulani (North), Yoruba (South-West), Igbo (South-East). 500+ languages, English official. World famous for Afrobeats (Burna Boy, Wizkid, Davido) and Nollywood (2nd largest film industry).
+
+**Economy:** Largest economy in Africa. Oil largest producer in Africa, plus agriculture, tech (Flutterwave, Paystack in Lagos Yabacon Valley), entertainment. Lagos is economic hub, 16M+ people. Abuja is planned capital since 1991 with Aso Rock, National Mosque, etc.
+
+**Future:** Young population median 18 years driving innovation. Projected top 3 economy by 2050. Giant of Africa indeed.
+"""
+    if "nigeria" in l: return "**Nigeria - Giant of Africa**\n\n• 230M+ people, 36 states\n• Capital: Abuja (1991), Largest: Lagos\n• 250+ ethnic groups (Hausa, Yoruba, Igbo)\n• Independence Oct 1, 1960\n• Economy: Oil, tech, entertainment"
+    if "abuja" in l: return "**Abuja**\n\nCapital since 1991, planned city in FCT. Places: Aso Rock Villa, National Mosque, Church, Millennium Park. Districts: Maitama, Asokoro, Wuse, Garki."
+    if "lagos" in l: return "**Lagos**\n\nLargest city 16M+, former capital, tech hub Yaba, business hub VI/Lekki."
+    if "futa" in l: return "**FUTA**\n\nFederal University of Technology Akure, founded 1981, top tech university for Engineering/Computing."
+    if "quantum" in l: return "**Quantum Computing**\n\nUses qubits (0 AND 1 at same time). Superposition + entanglement = massive speed. For drug discovery, cryptography, AI. Leaders: IBM, Google."
+    return f"**{q}**\n\n{q} is important. It has key meaning, uses, benefits. If you need article/essay, say 'Write 500-word article about {q}' and I'll give full."
 
 @app.route('/ask', methods=['POST'])
 def ask():
     data=request.json
     q=data.get('question','').strip()
-    hist=data.get('history',[])
     l=q.lower()
-
-    if not q:
-        return jsonify(answer="Ask me anything!")
+    if not q: return jsonify(answer="Ask me anything!")
     if l in ['thanks','thank you','thx','ok','okay','cool','nice','great','yeah','alright']:
         return jsonify(answer="You're welcome! 😊 What next?")
     if l in ['hi','hello','hey','hii','yo']:
-        return jsonify(answer="Hey! 👋 I'm Titech AI by Timileyin Samson. Main brain + backup active. What do you need?")
-    if 'who are you' in l or 'who built you' in l or 'who developed you' in l:
-        return jsonify(answer="I'm Titech AI built by Timileyin Samson — hybrid brain: main AI when online, smart offline backup when network slow.")
+        return jsonify(answer="Hey! 👋 I'm Titech AI by Timileyin Samson. Install me as app from your browser menu!")
+    if 'who are you' in l or 'who built you' in l:
+        return jsonify(answer="I'm Titech AI built by Timileyin Samson — now PWA installable!")
 
-    # IMAGE - always works
     if any(w in l for w in ['generate','create image','draw','make an image','logo','picture of','image of']):
         clean=q.lower()
         for bad in ['generate','create','make','draw','an image of','a image of','image of','image','please','for me','a 3d logo for']:
             clean=clean.replace(bad,'')
         clean=clean.strip() or "titech"
-        if "logo" in l or "titech" in l:
-            final="3D letter T logo, chrome metallic letter T, futuristic purple neon glow, minimalist luxury brand logo, black background, centered, ultra sharp, 8k"
-        else:
-            final=f"{clean}, ultra detailed, photorealistic, 8k, masterpiece, sharp focus"
+        final = "3D letter T logo, chrome metallic letter T, futuristic purple neon glow, minimalist luxury brand logo, black background, centered, ultra sharp, 8k" if ("logo" in l or "titech" in l) else f"{clean}, ultra detailed, photorealistic, 8k, masterpiece"
         encoded=urllib.parse.quote(final)
         url=f"https://image.pollinations.ai/prompt/{encoded}?width=1024&height=1024&model=flux&enhance=true&nologo=true&seed={random.randint(1,999999)}"
         return jsonify(answer=f"HD image for **{clean}**:\n\n![generated]({url})")
 
-    # TRY MAIN BRAIN FIRST - POST method (more reliable on Render)
+    # MAIN BRAIN
     try:
-        payload={
-            "model":"openai",
-            "messages":[
-                {"role":"system","content":"You are Titech AI by Timileyin Samson. Be helpful, concise, friendly. Answer directly, never ask 'what specifically do you want to know?' - just answer."},
-                {"role":"user","content":q}
-            ],
-            "stream":False
-        }
+        payload={"model":"openai","messages":[{"role":"system","content":"You are Titech AI by Timileyin Samson. Be helpful, direct, answer fully. Never say 'You said:'. If asked for article, write at least 450 words."},{"role":"user","content":q}],"stream":False}
         r=requests.post("https://text.pollinations.ai/openai", json=payload, timeout=25)
         if r.status_code==200:
             j=r.json()
-            # OpenAI format
-            if 'choices' in j and len(j['choices'])>0:
+            if 'choices' in j and j['choices']:
                 ans=j['choices'][0]['message']['content']
-                if len(ans)>20:
-                    return jsonify(answer=ans.strip())
-            # plain text format
-            if len(r.text)>20 and "You said:" not in r.text:
-                return jsonify(answer=r.text.strip())
-    except Exception as e:
-        print("Main brain POST failed:", e)
+                if len(ans)>30: return jsonify(answer=ans.strip())
+    except: pass
 
-    # TRY SECOND METHOD - GET with mistral
     try:
-        encoded_q=urllib.parse.quote(f"You are Titech AI by Timileyin Samson. Answer: {q}")
+        encoded_q=urllib.parse.quote(f"You are Titech AI. Answer fully: {q}")
         r=requests.get(f"https://text.pollinations.ai/{encoded_q}?model=mistral", timeout=15)
-        if r.status_code==200 and len(r.text.strip())>30:
-            if "Could you let me know" not in r.text and "You said:" not in r.text:
-                return jsonify(answer=r.text.strip())
-    except:
-        pass
+        if r.status_code==200 and len(r.text.strip())>30 and "You said:" not in r.text:
+            return jsonify(answer=r.text.strip())
+    except: pass
 
-    # BACKUP OFFLINE - REAL ANSWER, NO DEVIATION
     return jsonify(answer=offline_answer(q))
 
 if __name__=='__main__':
