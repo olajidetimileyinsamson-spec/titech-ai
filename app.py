@@ -105,9 +105,8 @@ def home():
 
 @app.route("/logo.jpg")
 def logo():
-    # Serve logo from root
     if os.path.exists("logo.jpg"):
-        return app.send_static_file("../logo.jpg") if False else open("logo.jpg","rb").read(), 200, {'Content-Type':'image/jpeg'}
+        return send_file("logo.jpg", mimetype='image/jpeg')
     return "", 404
 
 @app.route("/chat", methods=["POST"])
