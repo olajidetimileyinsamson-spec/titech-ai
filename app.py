@@ -4,7 +4,7 @@ import os
 
 app = Flask(__name__)
 
-GROQ_KEY = os.environ.get("GROQ_KEY") or os.environ.get("GROQ_API_KEY")
+   GROQ_KEY = os.environ.get("GROQ_API_KEY") or os.environ.get("GROQ_KEY")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 HTML_PAGE = """
@@ -25,7 +25,7 @@ button{padding:12px 22px;border-radius:25px;border:none;background:#4f46e5;color
 </style>
 </head><body>
 <div class="header">Titech AI 🚀 - Live!</div>
-<div id="chat"><div class="msg bot">Hello Timileyin! I am TiTech AI. Ask me anything!</div></div>
+<div id="chat"><div class="msg bot">Hello Timileyin! I am Titech AI. Ask me anything!</div></div>
 <div class="input-area">
 <input id="msg" placeholder="Ask Titech anything..." onkeydown="if(event.key==='Enter')send()">
 <button onclick="send()">Send</button>
@@ -63,9 +63,10 @@ def chat():
             "Content-Type": "application/json"
         }
         payload = {
-            "model": "openai/gpt-oss-20b",
+            "model": "llama-3.3-70b-versatile",
             "messages": [
-                {"role": "system", "content": "You are Titech AI, a helpful AI assistant created by Timileyin Samson. You are a TEXT-ONLY AI. You CANNOT generate, create, edit, or produce images. If user asks for image generation, politely say you cannot generate images yet, but you can describe the image in detail for them to create elsewhere."},
+                        {"role": "system", "content": "You are Titech AI, a text-only AI assistant created and owned by Timileyin Samson. You were built by Timileyin Samson. You are NOT made by OpenAI, Meta, or Google. If anyone asks who built you, always say Timileyin Samson. You cannot generate images, but you can describe them."},
+        {"role": "user", "content": user_msg}
                 {"role": "user", "content": user_msg}
             ]
         }
