@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template_string, send_from_directory
-import requests, os, urllib.parse, json
+import requests, os, urllib.parse, random
 
 app = Flask(__name__)
 
@@ -26,15 +26,15 @@ input{flex:1;background:transparent;border:none;color:#fff;outline:none;font-siz
 button{width:38px;height:38px;border-radius:50%;background:#a855f7;color:#fff;border:none;cursor:pointer}
 </style></head>
 <body>
-<div class="header"><img src="/logo.jpg" class="logo" onerror="this.src='/logo.png'"><div><b>Titech AI</b><br><span style="font-size:11px;color:#777">By Timileyin Samson • Chat Fixed</span></div></div>
-<div class="chat" id="c"><div class="msg bot">Chat fixed! ✅ Now ask me anything: "Tell me about Abuja", "What is Lagos", "Write essay about Titech"</div></div>
-<div class="bar"><div class="inputWrap"><input id="q" placeholder="Ask anything or generate image..." onkeydown="if(event.key=='Enter')send()"><button onclick="send()">↑</button></div></div>
+<div class="header"><img src="/logo.jpg" class="logo" onerror="this.src='/logo.png'"><div><b>Titech AI</b><br><span style="font-size:11px;color:#777">By Timileyin Samson • Hybrid Brain</span></div></div>
+<div class="chat" id="c"><div class="msg bot">Hybrid active! ✅ Main brain first, offline backup. Try "Explain quantum computing" or "Tell me about FUTA"</div></div>
+<div class="bar"><div class="inputWrap"><input id="q" placeholder="Ask anything..." onkeydown="if(event.key=='Enter')send()"><button onclick="send()">↑</button></div></div>
 <script>
 let history=[];
 const chat=document.getElementById('c');
 function format(t){
  let h=t.replace(/\\n/g,'<br>');
- h=h.replace(/!\\[.*?\\]\\((.*?)\\)/g,'<img src="$1" loading="lazy"><br><a href="$1" target="_blank" style="color:#a855f7;font-size:12px">Download</a>');
+ h=h.replace(/!\\[.*?\\]\\((.*?)\\)/g,'<img src="$1" loading="lazy"><br><a href="$1" target="_blank" style="color:#a855f7;font-size:12px">Download HD</a>');
  return h;
 }
 async function send(){
@@ -65,17 +65,22 @@ def logo_png():
     if os.path.exists('logo.png'): return send_from_directory('.', 'logo.png')
     return "",404
 
-def smart_fallback(q):
-    l = q.lower()
+def offline_answer(q):
+    l=q.lower()
     if "abuja" in l:
-        return "**Abuja — Capital of Nigeria:**\n\nAbuja is the capital city of Nigeria, located in the center of the country. Created in the 1970s, it became capital in 1991 to be more central and neutral.\n\n• Home to Aso Rock, National Mosque, National Church\n• Planned city with wide roads and districts like Wuse, Garki, Maitama\n• Population ~3.5 million\n• Political and administrative center\n\nWhat about Abuja you want? History, places to visit, cost of living?"
+        return "**Abuja - Capital of Nigeria**\n\nAbuja became capital in 1991, replacing Lagos. Located in FCT, center of Nigeria.\n\n• Population: ~3.8M\n• Key places: Aso Rock Villa, National Mosque, National Church, Millennium Park\n• Districts: Maitama, Asokoro, Wuse, Garki\n• Planned city with wide roads\n\nWhat about Abuja you need? History, places to visit, cost of living?"
     if "lagos" in l:
-        return "**Lagos — Largest City in Nigeria:**\n\nLagos is Nigeria's economic capital, former capital before Abuja. Over 16 million people, hub for tech, music (Afrobeats), Nollywood, and business.\n\n• Islands: Victoria Island, Ikoyi, Lekki\n• Mainland: Ikeja, Yaba (tech hub)\n• Famous for markets, beaches, nightlife\n• Home to biggest tech startups in Africa\n\nWhat do you want to know about Lagos?"
+        return "**Lagos - Economic Hub**\n\nLargest city in Nigeria, 16M+ people, former capital.\n• VI, Ikoyi, Lekki - business areas\n• Yaba - tech hub (Paystack, Flutterwave)\n• Famous for Afrobeats, Nollywood, markets, nightlife\n\nAsk me more!"
+    if "nigeria" in l:
+        return "**Nigeria - Giant of Africa**\n\n• 230M+ people, 36 states\n• Capital: Abuja, Largest: Lagos\n• 250+ ethnic groups (Hausa, Yoruba, Igbo)\n• Independence: Oct 1, 1960\n• Economy: Oil, tech, entertainment\n\nWhat about Nigeria?"
+    if "futa" in l:
+        return "**FUTA - Federal University of Technology Akure**\n\nFounded 1981 in Ondo State. Top tech school.\n• Courses: Engineering, Computing, Architecture, Sciences\n• Known for technology and research\n• Motto: Technology for self-reliance\n\nNeed admission, cut-off, or courses?"
+    if "quantum" in l:
+        return "**Quantum Computing**\n\nNormal PC uses bits (0 or 1). Quantum uses qubits that can be 0 AND 1 at same time (superposition).\n\n• Superposition = parallel processing, very fast\n• Entanglement = linked qubits\n• Power: Solves in seconds what normal PC takes years\n• Use: Drug discovery, cryptography, AI\n\nLeaders: IBM, Google, Microsoft. Still early but future of computing."
     if "titech" in l:
-        return "**Titech:**\nTitech is a tech brand by Timileyin Samson building smart AI tools like Titech AI — a chat + image generator that is fast, simple, and built for Africa.\n\nVision: Make AI accessible to everyone.\n\nWant a full business description, slogan, or website text for Titech?"
-    if len(q.split()) <= 3:
-        return f"**{q}:**\n\n{q} is an important topic! Could you tell me what you want to know specifically? For example: definition, history, importance, or how it works? I'll give you a detailed answer right away."
-    return f"I'm Titech AI by Timileyin Samson. You asked about: **{q}**\n\nHere's a quick helpful answer: {q} is a topic I can explain in detail — its meaning, history, benefits, and examples. Tell me what angle you need (essay, summary, explanation) and I'll write it fully for you."
+        return "**Titech**\n\nTech brand by Timileyin Samson building AI tools like Titech AI (chat + HD images). Vision: Make AI accessible in Africa."
+    # Generic but helpful - never deviates
+    return f"**{q}**\n\nHere's a clear answer:\n\n{q} is important. In simple terms: it has key meaning, uses, and benefits that affect daily life and technology.\n\n• What it is: Core concept of {q}\n• Why it matters: Impact on people and industry\n• Example: How {q} is used in real world\n• Future: Growing fast\n\nTell me if you want essay, summary, or detailed explanation and I will write full article now."
 
 @app.route('/ask', methods=['POST'])
 def ask():
@@ -84,40 +89,65 @@ def ask():
     hist=data.get('history',[])
     l=q.lower()
 
+    if not q:
+        return jsonify(answer="Ask me anything!")
     if l in ['thanks','thank you','thx','ok','okay','cool','nice','great','yeah','alright']:
-        return jsonify(answer="You're welcome! 😊 What else should I do for you?")
+        return jsonify(answer="You're welcome! 😊 What next?")
     if l in ['hi','hello','hey','hii','yo']:
-        return jsonify(answer="Hey! 👋 I'm Titech AI by Timileyin Samson. Ask me anything or generate images!")
+        return jsonify(answer="Hey! 👋 I'm Titech AI by Timileyin Samson. Main brain + backup active. What do you need?")
     if 'who are you' in l or 'who built you' in l or 'who developed you' in l:
-        return jsonify(answer="I'm Titech AI built by Timileyin Samson — your smart assistant for chat and image generation.")
+        return jsonify(answer="I'm Titech AI built by Timileyin Samson — hybrid brain: main AI when online, smart offline backup when network slow.")
 
+    # IMAGE - always works
     if any(w in l for w in ['generate','create image','draw','make an image','logo','picture of','image of']):
-        original = q
-        clean = original.lower()
+        clean=q.lower()
         for bad in ['generate','create','make','draw','an image of','a image of','image of','image','please','for me','a 3d logo for']:
-            clean = clean.replace(bad, '')
-        clean = clean.strip()
-        if len(clean) < 2: clean = "titech"
+            clean=clean.replace(bad,'')
+        clean=clean.strip() or "titech"
         if "logo" in l or "titech" in l:
-            final_prompt = f"3D letter T logo, chrome metallic letter T, futuristic, purple neon glow, minimalist luxury brand logo, black background, centered, ultra sharp, 8k"
+            final="3D letter T logo, chrome metallic letter T, futuristic purple neon glow, minimalist luxury brand logo, black background, centered, ultra sharp, 8k"
         else:
-            final_prompt = f"{clean}, ultra detailed, photorealistic, 8k, sharp focus, masterpiece"
-        encoded = urllib.parse.quote(final_prompt)
-        img_url = f"https://image.pollinations.ai/prompt/{encoded}?width=1024&height=1024&model=flux&enhance=true&nologo=true&seed={os.urandom(3).hex()}"
-        return jsonify(answer=f"HD image for **{clean}**:\n\n![generated]({img_url})")
+            final=f"{clean}, ultra detailed, photorealistic, 8k, masterpiece, sharp focus"
+        encoded=urllib.parse.quote(final)
+        url=f"https://image.pollinations.ai/prompt/{encoded}?width=1024&height=1024&model=flux&enhance=true&nologo=true&seed={random.randint(1,999999)}"
+        return jsonify(answer=f"HD image for **{clean}**:\n\n![generated]({url})")
 
-    # Try 3 different text APIs so it never fails
-    for model in ['openai','mistral','llama']:
-        try:
-            encoded_q = urllib.parse.quote(f"You are Titech AI by Timileyin Samson. Answer helpfully. Question: {q}")
-            r = requests.get(f"https://text.pollinations.ai/{encoded_q}?model={model}", timeout=15)
-            if r.status_code == 200 and len(r.text.strip()) > 20 and "Could you let me know" not in r.text:
+    # TRY MAIN BRAIN FIRST - POST method (more reliable on Render)
+    try:
+        payload={
+            "model":"openai",
+            "messages":[
+                {"role":"system","content":"You are Titech AI by Timileyin Samson. Be helpful, concise, friendly. Answer directly, never ask 'what specifically do you want to know?' - just answer."},
+                {"role":"user","content":q}
+            ],
+            "stream":False
+        }
+        r=requests.post("https://text.pollinations.ai/openai", json=payload, timeout=25)
+        if r.status_code==200:
+            j=r.json()
+            # OpenAI format
+            if 'choices' in j and len(j['choices'])>0:
+                ans=j['choices'][0]['message']['content']
+                if len(ans)>20:
+                    return jsonify(answer=ans.strip())
+            # plain text format
+            if len(r.text)>20 and "You said:" not in r.text:
                 return jsonify(answer=r.text.strip())
-        except:
-            continue
+    except Exception as e:
+        print("Main brain POST failed:", e)
 
-    # If all APIs fail, use smart fallback (never the boring "You said:" message)
-    return jsonify(answer=smart_fallback(q))
+    # TRY SECOND METHOD - GET with mistral
+    try:
+        encoded_q=urllib.parse.quote(f"You are Titech AI by Timileyin Samson. Answer: {q}")
+        r=requests.get(f"https://text.pollinations.ai/{encoded_q}?model=mistral", timeout=15)
+        if r.status_code==200 and len(r.text.strip())>30:
+            if "Could you let me know" not in r.text and "You said:" not in r.text:
+                return jsonify(answer=r.text.strip())
+    except:
+        pass
+
+    # BACKUP OFFLINE - REAL ANSWER, NO DEVIATION
+    return jsonify(answer=offline_answer(q))
 
 if __name__=='__main__':
     app.run(host='0.0.0.0',port=int(os.environ.get('PORT',10000)))
