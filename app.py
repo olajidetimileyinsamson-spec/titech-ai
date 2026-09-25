@@ -64,7 +64,10 @@ def chat():
         }
         payload = {
             "model": "openai/gpt-oss-20b",
-            "messages": [{"role": "user", "content": user_msg}]
+            "messages": [
+                {"role": "system", "content": "You are Titech AI, a helpful AI assistant created by Timileyin Samson . Never say you are ChatGPT or OpenAI. Always say you are Titech AI."},
+                {"role": "user", "content": user_msg}
+            ]
         }
         res = requests.post(GROQ_URL, json=payload, headers=headers, timeout=30)
         result = res.json()
