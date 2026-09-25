@@ -63,7 +63,7 @@ def chat():
             "Content-Type": "application/json"
         }
         payload = {
-            "model": "llama-3.1-8b-instant",
+            "model": "openai/gpt-oss-20b",
             "messages": [{"role": "user", "content": user_msg}]
         }
         res = requests.post(GROQ_URL, json=payload, headers=headers, timeout=30)
