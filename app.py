@@ -3,7 +3,7 @@ import requests, os, urllib.parse, random
 
 app = Flask(__name__)
 
-HTML = """
+HTML_PAGE = '''
 <!DOCTYPE html>
 <html><head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,7 +14,7 @@ HTML = """
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#0a0a0a;color:#fff;font-family:system-ui,sans-serif;display:flex;flex-direction:column;height:100vh}
-.header{padding:14px 16px;border-bottom:1px solid #1f1f1f;display:flex;gap:12px;align-items:center;position:sticky;top:0;background:#0a0a0a;z-index:10}
+.header{padding:14px 16px;border-bottom:1px solid #1f1f1f;display:flex;gap:12px;align-items:center}
 .logo{width:42px;height:42px;border-radius:12px;object-fit:cover;border:1px solid #222}
 .chat{flex:1;overflow:auto;padding:16px;padding-bottom:110px;display:flex;flex-direction:column;gap:8px}
 .msg{padding:12px 16px;border-radius:20px;max-width:88%;line-height:1.6;white-space:pre-wrap;font-size:14.5px;word-wrap:break-word}
@@ -31,8 +31,69 @@ input{flex:1;background:transparent;border:none;color:#fff;outline:none;font-siz
 button{width:38px;height:38px;border-radius:50%;background:#a855f7;color:#fff;border:none;cursor:pointer}
 </style></head>
 <body>
-<div class="header"><img src="/logo.jpg" class="logo"><div><b>Titech AI</b><br><span style="font-size:11px;color:#777">By Timileyin Samson • App Ready</span></div></div>
-<div class="chat" id="c"><div class="msg bot">App Ready! ✅ Install me from browser menu (Add to Home Screen). Ask anything - chat + image!</div></div>
-<div class="bar"><div class="inputWrap"><input id="q" placeholder="Ask anything..." onkeydown="if(event.key=='Enter')send()"><button onclick="send()">↑</button></div></div>
+<div class="header"><img src="/logo.jpg" class="logo"><div><b>Titech AI</b><br><span style="font-size:11px;color:#777">By Timileyin Samson - App Ready</span></div></div>
+<div class="chat" id="c"><div class="msg bot">App Ready! Install me from browser menu. Ask anything!</div></div>
+<div class="bar"><div class="inputWrap"><input id="q" placeholder="Ask anything..." onkeydown="if(event.key=='Enter')send()"><button onclick="send()">&#8593;</button></div></div>
 <script>
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}
+let h=[];const chat=document.getElementById('c');
+function fmt(t){let x=t.replace(/\\n/g,'<br>');x=x.replace(/!\\[.*?\\]\\((.*?)\\)/g,'<img src="$1" loading="lazy"><br><a href="$1" target="_blank" style="color:#a855f7;font-size:12px">Download</a>');return x;}
+async function send(){let q=document.getElementById('q').value.trim();if(!q)return;document.getElementById('q').value='';let u=document.createElement('div');u.className='msg user';u.textContent=q;chat.appendChild(u);h.push({role:'user',content:q});let t=document.createElement('div');t.className='msg bot thinking';t.innerHTML='Thinking <span class="dot"></span><span class="dot"></span><span class="dot"></span>';chat.appendChild(t);chat.scrollTop=chat.scrollHeight;let r=await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,history:h.slice(-8)})});let j=await r.json();t.className='msg bot';t.innerHTML=fmt(j.answer);h.push({role:'assistant',content:j.answer});chat.scrollTop=chat.scrollHeight;}
+</script>
+</body>
+</html>
+'''
+
+@app.route('/')
+def home():
+    return render_template_string(HTML_PAGE)
+
+@app.route('/logo.jpg')
+def logo_jpg():
+    return send_from_directory('.', 'logo.jpg')
+
+@app.route('/manifest.json')
+def manifest():
+    return jsonify({
+        "name": "Titech AI",
+        "short_name": "Titech AI",
+        "start_url": "/",
+        "display": "standalone",
+        "background_color": "#0a0a0a",
+        "theme_color": "#a855f7",
+        "icons": [{"src": "/logo.jpg", "sizes": "192x192", "type": "image/jpeg"}, {"src": "/logo.jpg", "sizes": "512x512", "type": "image/jpeg"}]
+    })
+
+@app.route('/sw.js')
+def sw():
+    js = "self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>self.clients.claim());"
+    return js, 200, {'Content-Type': 'application/javascript'}
+
+def offline_answer(q):
+    l = q.lower()
+    if "nigeria" in l:
+        return "**Nigeria - Giant of Africa (450+ Words)**\n\nNigeria is most populous in Africa, 230M+ people. Independence Oct 1 1960. 36 states + FCT Abuja. 250+ ethnic groups Hausa, Yoruba, Igbo. Famous for Afrobeats and Nollywood. Largest economy in Africa - oil, tech (Flutterwave, Paystack), entertainment. Lagos 16M+ economic hub, Abuja capital 1991."
+    if "abuja" in l:
+        return "**Abuja** - Capital since 1991, planned city in FCT, Aso Rock, National Mosque, Church, Millennium Park."
+    if "futa" in l:
+        return "**FUTA** - Federal University of Technology Akure, est 1981, top tech university."
+    if "quantum" in l:
+        return "**Quantum Computing** - Uses qubits (0 and 1 same time). Super fast, future of computing. Leaders IBM, Google."
+    return q + " - This is important topic with definition, uses, benefits. Ask for article for 450 words."
+
+@app.route('/ask', methods=['POST'])
+def ask():
+    data = request.json
+    q = data.get('question','').strip()
+    l = q.lower()
+    if not q:
+        return jsonify(answer="Ask me!")
+    if l in ['hi','hello','hey']:
+        return jsonify(answer="Hey! I am Titech AI by Timileyin Samson. Install me as app!")
+    if 'who are you' in l:
+        return jsonify(answer="I am Titech AI built by Timileyin Samson - now installable as app!")
+
+    if any(w in l for w in ['generate','create image','draw','logo','picture of','image of']):
+        clean = q.lower()
+        for bad in ['generate','create','make','draw','an image of','image of','image','please','logo for','a 3d logo for']:
+            clean = clean.replace(bad,'')
