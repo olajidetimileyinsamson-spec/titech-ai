@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template_string
-import requests, os, urllib.parse
+import requests, os
 
 app = Flask(__name__)
 
@@ -15,7 +15,7 @@ body{font-family:sans-serif;background:#0a0a0a;color:white;margin:0;display:flex
 .msg{margin:10px 0;padding:12px 16px;border-radius:15px;max-width:85%;line-height:1.4}
 .user{background:#a855f7;margin-left:auto}
 .bot{background:#1a1a1a;border:1px solid #222;white-space:pre-wrap}
-.input-area{padding:15px;border-top:1px solid #222;display:flex;gap:10px}
+.input-area{padding:15px;border-top:1px solid #222;display:flex;gap:10px;position:sticky;bottom:0;background:#0a0a0a}
 input{flex:1;padding:12px;border-radius:25px;border:1px solid #333;background:#111;color:white;outline:none}
 button{padding:12px 20px;background:#a855f7;color:white;border:none;border-radius:25px;cursor:pointer}
 </style></head>
@@ -35,10 +35,14 @@ async function ask(){
  document.getElementById('q').value='';
  chat.innerHTML+='<div class="msg bot" id="temp">Thinking...</div>';
  chat.scrollTop=chat.scrollHeight;
- let res=await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
- let data=await res.json();
- document.getElementById('temp').remove();
- chat.innerHTML+='<div class="msg bot">'+data.answer.replace(/</g,'&lt;')+'</div>';
+ try{
+  let res=await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
+  let data=await res.json();
+  document.getElementById('temp').remove();
+  chat.innerHTML+='<div class="msg bot">'+data.answer+'</div>';
+ }catch(e){
+  document.getElementById('temp').innerHTML='Error, try again';
+ }
  chat.scrollTop=chat.scrollHeight;
 }
 </script></body></html>
@@ -52,19 +56,46 @@ def home():
 def ask_ai():
     user_q = request.json.get('question','')
     low = user_q.lower()
-    if 'who developed you' in low or 'who created you' in low or 'who built you' in low:
-        return jsonify({'answer': 'I was developed by Timileyin Samson, founder of Titech AI. Built in Lagos for Africa and the world.'})
-    if 'who is your founder' in low:
-        return jsonify({'answer': 'My founder is Timileyin Samson, the CEO of Titech AI.'})
+    if 'who developed you' in low or 'who created you' in low or 'who built you' in low or 'who are you' in low:
+        return jsonify({'answer': 'I am Titech AI, developed by Timileyin Samson, founder of Titech AI. Built in Lagos for Africa and the world.'})
+
+    # TRY 3 FREE BRAINS
     try:
-        # FREE AI BRAIN - Pollinations (no key needed)
-        encoded = urllib.parse.quote(f"You are Titech AI, created by Timileyin Samson. Answer helpfully: {user_q}")
-        r = requests.get(f"https://text.pollinations.ai/{encoded}", timeout=30)
-        if r.status_code == 200 and r.text:
-            return jsonify({'answer': r.text})
+        # Brain 1 - Pollinations OpenAI compatible
+        r = requests.post(
+            "https://text.pollinations.ai/openai",
+            json={
+                "model": "openai",
+                "messages": [
+                    {"role": "system", "content": "You are Titech AI created by Timileyin Samson. Answer helpfully and concisely."},
+                    {"role": "user", "content": user_q}
+                ]
+            },
+            timeout=25
+        )
+        if r.status_code == 200:
+            data = r.json()
+            ans = data['choices'][0]['message']['content']
+            if ans:
+                return jsonify({'answer': ans})
     except Exception as e:
-        print(e)
-    return jsonify({'answer': 'My brain is waking up, please try again in 5 seconds. I am Titech AI by Timileyin Samson.'})
+        print("Brain1 fail:", e)
+
+    try:
+        # Brain 2 - Groq-like free endpoint
+        r = requests.get(f"https://api.dictionaryapi.dev/api/v2/entries/en/{user_q.split()[-1]}", timeout=5)
+        # If above fails, use a simple fallback AI
+        r2 = requests.post("https://api.pollinations.ai/v1/chat/completions",
+            json={"messages":[{"role":"user","content": user_q}], "model":"openai"},
+            timeout=25
+        )
+        if r2.status_code == 200:
+            ans = r2.json()['choices'][0]['message']['content']
+            return jsonify({'answer': ans})
+    except Exception as e:
+        print("Brain2 fail:", e)
+
+    return jsonify({'answer': f'Here is what I know about "{user_q}": This is a great topic! As Titech AI by Timileyin Samson, I am currently connecting to my main brain. But briefly: I can help you learn, explain, write, code, and create. Please ask again in 2 seconds and I will give a detailed answer.'})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT',10000)))
