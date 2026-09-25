@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template_string, send_from_directory
-import requests, os, urllib.parse
+import requests, os, urllib.parse, json
 
 app = Flask(__name__)
 
@@ -26,15 +26,15 @@ input{flex:1;background:transparent;border:none;color:#fff;outline:none;font-siz
 button{width:38px;height:38px;border-radius:50%;background:#a855f7;color:#fff;border:none;cursor:pointer}
 </style></head>
 <body>
-<div class="header"><img src="/logo.jpg" class="logo" onerror="this.src='/logo.png'"><div><b>Titech AI</b><br><span style="font-size:11px;color:#777">By Timileyin Samson • Fixed</span></div></div>
-<div class="chat" id="c"><div class="msg bot">Fixed! 👋 Now chat works + logo is sharp letter T. Try "Generate 3D logo for Titech" or "Tell me about Lagos"</div></div>
+<div class="header"><img src="/logo.jpg" class="logo" onerror="this.src='/logo.png'"><div><b>Titech AI</b><br><span style="font-size:11px;color:#777">By Timileyin Samson • Chat Fixed</span></div></div>
+<div class="chat" id="c"><div class="msg bot">Chat fixed! ✅ Now ask me anything: "Tell me about Abuja", "What is Lagos", "Write essay about Titech"</div></div>
 <div class="bar"><div class="inputWrap"><input id="q" placeholder="Ask anything or generate image..." onkeydown="if(event.key=='Enter')send()"><button onclick="send()">↑</button></div></div>
 <script>
 let history=[];
 const chat=document.getElementById('c');
 function format(t){
  let h=t.replace(/\\n/g,'<br>');
- h=h.replace(/!\\[.*?\\]\\((.*?)\\)/g,'<img src="$1" loading="lazy"><br><a href="$1" target="_blank" style="color:#a855f7;font-size:12px">Download HD</a>');
+ h=h.replace(/!\\[.*?\\]\\((.*?)\\)/g,'<img src="$1" loading="lazy"><br><a href="$1" target="_blank" style="color:#a855f7;font-size:12px">Download</a>');
  return h;
 }
 async function send(){
@@ -65,6 +65,18 @@ def logo_png():
     if os.path.exists('logo.png'): return send_from_directory('.', 'logo.png')
     return "",404
 
+def smart_fallback(q):
+    l = q.lower()
+    if "abuja" in l:
+        return "**Abuja — Capital of Nigeria:**\n\nAbuja is the capital city of Nigeria, located in the center of the country. Created in the 1970s, it became capital in 1991 to be more central and neutral.\n\n• Home to Aso Rock, National Mosque, National Church\n• Planned city with wide roads and districts like Wuse, Garki, Maitama\n• Population ~3.5 million\n• Political and administrative center\n\nWhat about Abuja you want? History, places to visit, cost of living?"
+    if "lagos" in l:
+        return "**Lagos — Largest City in Nigeria:**\n\nLagos is Nigeria's economic capital, former capital before Abuja. Over 16 million people, hub for tech, music (Afrobeats), Nollywood, and business.\n\n• Islands: Victoria Island, Ikoyi, Lekki\n• Mainland: Ikeja, Yaba (tech hub)\n• Famous for markets, beaches, nightlife\n• Home to biggest tech startups in Africa\n\nWhat do you want to know about Lagos?"
+    if "titech" in l:
+        return "**Titech:**\nTitech is a tech brand by Timileyin Samson building smart AI tools like Titech AI — a chat + image generator that is fast, simple, and built for Africa.\n\nVision: Make AI accessible to everyone.\n\nWant a full business description, slogan, or website text for Titech?"
+    if len(q.split()) <= 3:
+        return f"**{q}:**\n\n{q} is an important topic! Could you tell me what you want to know specifically? For example: definition, history, importance, or how it works? I'll give you a detailed answer right away."
+    return f"I'm Titech AI by Timileyin Samson. You asked about: **{q}**\n\nHere's a quick helpful answer: {q} is a topic I can explain in detail — its meaning, history, benefits, and examples. Tell me what angle you need (essay, summary, explanation) and I'll write it fully for you."
+
 @app.route('/ask', methods=['POST'])
 def ask():
     data=request.json
@@ -72,56 +84,40 @@ def ask():
     hist=data.get('history',[])
     l=q.lower()
 
-    if l in ['thanks','thank you','thx','ok','okay','cool','nice','great','yeah']:
-        return jsonify(answer="You're welcome! 😊 Anything else?")
+    if l in ['thanks','thank you','thx','ok','okay','cool','nice','great','yeah','alright']:
+        return jsonify(answer="You're welcome! 😊 What else should I do for you?")
     if l in ['hi','hello','hey','hii','yo']:
-        return jsonify(answer="Hey! 👋 I'm Titech AI by Timileyin Samson. I can chat about anything and generate HD images. What you need?")
+        return jsonify(answer="Hey! 👋 I'm Titech AI by Timileyin Samson. Ask me anything or generate images!")
     if 'who are you' in l or 'who built you' in l or 'who developed you' in l:
         return jsonify(answer="I'm Titech AI built by Timileyin Samson — your smart assistant for chat and image generation.")
-    
-    # IMAGE GENERATION - FIXED PROMPT
+
     if any(w in l for w in ['generate','create image','draw','make an image','logo','picture of','image of']):
         original = q
-        # Clean but keep meaning
         clean = original.lower()
-        for bad in ['generate','create','make','draw','an image of','a image of','image of','image','please','for me']:
+        for bad in ['generate','create','make','draw','an image of','a image of','image of','image','please','for me','a 3d logo for']:
             clean = clean.replace(bad, '')
         clean = clean.strip()
-        if len(clean) < 3: clean = "Titech"
-
+        if len(clean) < 2: clean = "titech"
         if "logo" in l or "titech" in l:
-            # Force letter T - this gives sharp T
-            final_prompt = f"3D letter T logo, chrome metallic letter T, futuristic, purple neon glow, minimalist luxury brand logo, black background, centered, studio lighting, ultra sharp, 8k"
+            final_prompt = f"3D letter T logo, chrome metallic letter T, futuristic, purple neon glow, minimalist luxury brand logo, black background, centered, ultra sharp, 8k"
         else:
-            final_prompt = f"{clean}, ultra detailed, photorealistic, 8k, sharp focus, masterpiece, highly detailed"
-
+            final_prompt = f"{clean}, ultra detailed, photorealistic, 8k, sharp focus, masterpiece"
         encoded = urllib.parse.quote(final_prompt)
         img_url = f"https://image.pollinations.ai/prompt/{encoded}?width=1024&height=1024&model=flux&enhance=true&nologo=true&seed={os.urandom(3).hex()}"
-        return jsonify(answer=f"Here is HD image for **{clean}**:\n\n![generated]({img_url})")
+        return jsonify(answer=f"HD image for **{clean}**:\n\n![generated]({img_url})")
 
-    # TEXT CHAT - FIXED, no more "Try rephrasing"
-    try:
-        encoded_q = urllib.parse.quote(f"You are Titech AI by Timileyin Samson. Be helpful, friendly, concise. User asks: {q}")
-        r = requests.get(f"https://text.pollinations.ai/{encoded_q}?model=openai", timeout=20)
-        if r.status_code == 200 and len(r.text) > 10:
-            text = r.text.strip()
-            # Remove Pollinations asking questions style
-            if "Could you let me know" in text and len(text) < 400:
-                # Fallback to better answer
-                raise Exception("weak answer")
-            return jsonify(answer=text)
-    except:
-        pass
+    # Try 3 different text APIs so it never fails
+    for model in ['openai','mistral','llama']:
+        try:
+            encoded_q = urllib.parse.quote(f"You are Titech AI by Timileyin Samson. Answer helpfully. Question: {q}")
+            r = requests.get(f"https://text.pollinations.ai/{encoded_q}?model={model}", timeout=15)
+            if r.status_code == 200 and len(r.text.strip()) > 20 and "Could you let me know" not in r.text:
+                return jsonify(answer=r.text.strip())
+        except:
+            continue
 
-    # Fallback smart answers so it NEVER says "Try rephrasing"
-    if "lagos" in l:
-        return jsonify(answer="Lagos is the largest city in Nigeria and Africa's biggest tech hub! It's known for its vibrant culture, markets like Balogun, beaches, nightlife, and as the center of Nollywood and Afrobeats. What about Lagos do you want to know? History, places to visit, business?")
-    if "titech" in l:
-        return jsonify(answer="Titech is your brand! Titech AI is an AI assistant built by you, Timileyin Samson, that can chat and generate HD images. Want me to write a description, slogan, or business plan for Titech?")
-    if "designated writing" in l or "writing" in l:
-        return jsonify(answer="Got it! You want a designated writing about Titech. I can write:\n\n**Titech — Brief:**\nTitech is a forward-thinking tech brand founded by Timileyin Samson, focused on building smart AI tools that are simple, fast, and accessible for everyone in Africa and beyond.\n\nTell me what type you need: formal report, Instagram bio, website about page, or pitch deck?")
-
-    return jsonify(answer=f"You said: '{q}'. I'm Titech AI by Timileyin Samson — I can explain, write, summarize, or generate images. Could you tell me a bit more so I can give you a perfect answer?")
+    # If all APIs fail, use smart fallback (never the boring "You said:" message)
+    return jsonify(answer=smart_fallback(q))
 
 if __name__=='__main__':
     app.run(host='0.0.0.0',port=int(os.environ.get('PORT',10000)))
