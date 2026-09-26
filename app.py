@@ -33,7 +33,7 @@ document.getElementById('inp').addEventListener('keydown',e=>{if(e.key==='Enter'
 def ask_groq(msg):
     headers = {"Authorization": "Bearer " + GROQ_KEY, "Content-Type": "application/json"}
     payload = {
-        "model": "openai/gpt-oss-20b",
+        "model": "openai/gpt-oss-120b",
         "messages": [
             {"role": "system", "content": "You are Titech AI by Timileyin Samson. You are smart, helpful, concise."},
             {"role": "user", "content": msg}
