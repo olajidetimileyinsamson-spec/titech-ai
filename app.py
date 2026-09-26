@@ -40,7 +40,7 @@ document.getElementById('inp').addEventListener('keydown',e=>{if(e.key==='Enter'
 def ask_groq(msg):
     if not GROQ_KEY: return "❌ GROQ_API_KEY missing on Render. Add it in Environment."
     headers={"Authorization":f"Bearer {GROQ_KEY}","Content-Type":"application/json"}
-    payload={"model":"llama-3.3-70b-versatile","messages":[{"role":"system","content":"You are Titech AI by Timileyin Samson. Helpful."},{"role":"user","content":msg}]}
+    payload="model":"openai/gpt-oss-20b","messages":[{"role":"system","content":"You are Titech AI by Timileyin Samson. Helpful."},{"role":"user","content":msg}]}
     try:
         r=requests.post(GROQ_URL,headers=headers,json=payload,timeout=40)
         if r.status_code!=200: return f"Groq error {r.status_code}: {r.text[:150]}"
