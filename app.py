@@ -48,7 +48,7 @@ def chat():
     u="https://image.pollinations.ai/prompt/"+urllib.parse.quote(pr)+"?seed="+os.urandom(2).hex()
     return jsonify({"reply":"Image for "+pr,"image":u})
   need=any(x in low for x in ["2026","2025","today","latest","current","price","richest","news"])
-  mod="groq/compound-mini" if need else "openai/gpt-oss-120b"
+  mod="openai/gpt-oss-120b"
   return jsonify({"reply":ask(mod,m)})
 
 if __name__=="__main__":
