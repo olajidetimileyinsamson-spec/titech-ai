@@ -129,9 +129,12 @@ def chat():
                 "model": "llama-3.1-8b-instant",
                 "messages": [{"role":"user","content": q}]
             }
-            r = requests.post(URL, headers=headers, json=payload, timeout=20)
+                        r = requests.post(URL, headers=headers, json=payload, timeout=20)
             j = r.json()
-            reply = j["choices"][0]["message"]["content"]
+            if "choices" not in j:
+                reply = f"Groq Error: {j}"
+            else:
+                reply = j["choices"][0]["message"]["content"]
     except Exception as e:
         reply = f"Error: {e}"
 
