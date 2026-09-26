@@ -46,7 +46,7 @@ HTML_PAGE = """
 <title>TITECH AI</title>
 <style>
 body{background:#070c1f;color:white;font-family:Arial;margin:0}
-.top{background:#111a3a;padding:16px;text-align:center;font-weight:bold;font-size:18px;letter-spacing:1px}
+.top{background:#111a3a;padding:16px;text-align:center;font-weight:bold;font-size:18px}
 #chat{padding:15px;padding-bottom:95px;display:flex;flex-direction:column;gap:14px;min-height:70vh}
 .user{background:#2b5cff;align-self:flex-end;padding:10px 14px;border-radius:18px 18px 2px 18px;max-width:80%;word-wrap:break-word}
 .ai{background:#1a2447;align-self:flex-start;padding:12px 14px;border-radius:14px 14px 14px 2px;max-width:85%;position:relative}
@@ -75,7 +75,7 @@ body{background:#070c1f;color:white;font-family:Arial;margin:0}
 const chat=document.getElementById('chat');
 const inp=document.getElementById('inp');
 function copyT(btn){
-  const txt = btn.closest('.ai').querySelector('.txt').innerText;
+  const txt=btn.closest('.ai').querySelector('.txt').innerText;
   navigator.clipboard.writeText(txt).then(()=>{
     let old=btn.innerText; btn.innerText='✅ Copied';
     setTimeout(()=>btn.innerText=old,1500);
@@ -88,13 +88,13 @@ function saveImg(url){
 }
 async function sendMsg(){
   const msg=inp.value.trim(); if(!msg) return;
-  chat.innerHTML+=`<div class="user">${msg}</div>`; inp.value=''; chat.scrollTop=chat.scrollHeight;
+  chat.innerHTML+=`<div class="user">${msg}</div>`; inp.value='';
   window.scrollTo(0,document.body.scrollHeight);
   const res=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});
   const data=await res.json();
   let html=`<div class="ai"><div class="txt">${data.reply}</div>`;
   if(data.image){
-    html+=`<img src="${data.image}" crossorigin="anonymous"><div class="btns"><button class="small" onclick="saveImg('${data.image}')">⬇️ Save Image</button></div>`;
+    html+=`<img src="${data.image}"><div class="btns"><button class="small" onclick="saveImg('${data.image}')">⬇️ Save Image</button></div>`;
   }
   html+=`<div class="btns"><button class="small" onclick="copyT(this)">📋 Copy Text</button></div></div>`;
   chat.innerHTML+=html;
@@ -114,30 +114,23 @@ def home():
 def chat():
     q = request.json.get("message","")
     image_url = None
-    # try to find image if user asks for image
     low = q.lower()
     if any(w in low for w in ["image","photo","picture","flag","coat","logo","show"]):
         image_url = get_wiki(q) or get_unsplash(q)
-
-    # Groq chat
     try:
         if not GROQ_KEY:
-            reply = "Groq API Key not set. Please set GROQ_API_KEY in Render Environment."
+            reply = "Groq API Key not set in Render Environment."
         else:
             headers = {"Authorization": f"Bearer {GROQ_KEY}", "Content-Type": "application/json"}
-            payload = {
-                "model": "llama-3.1-8b-instant",
-                "messages": [{"role":"user","content": q}]
-            }
-                        r = requests.post(URL, headers=headers, json=payload, timeout=20)
+            payload = {"model": "llama-3.1-8b-instant", "messages": [{"role":"user","content": q}]}
+            r = requests.post(URL, headers=headers, json=payload, timeout=20)
             j = r.json()
-            if "choices" not in j:
-                reply = f"Groq Error: {j}"
-            else:
+            if "choices" in j:
                 reply = j["choices"][0]["message"]["content"]
+            else:
+                reply = f"Groq Error: {j}"
     except Exception as e:
         reply = f"Error: {e}"
-
     return jsonify({"reply": reply, "image": image_url})
 
 if __name__ == "__main__":
