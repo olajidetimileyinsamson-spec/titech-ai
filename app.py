@@ -45,7 +45,8 @@ def chat():
   low=m.lower()
   if "image" in low:
     pr=low.replace("generate image of","").replace("image of","").strip() or "futuristic"
-    u="https://image.pollinations.ai/prompt/"+urllib.parse.quote(pr)+"?seed="+os.urandom(2).hex()
+    q=urllib.parse.quote(pr+" highly realistic 4k photo, sharp focus, correct proportions, no distortion, no text, no logo, no watermark")
+u="https://image.pollinations.ai/prompt/"+q+"?model=flux&nologo=true&enhance=true&seed="+os.urandom(2).hex()
     return jsonify({"reply":"Image for "+pr,"image":u})
   need=any(x in low for x in ["2026","2025","today","latest","current","price","richest","news"])
   mod="openai/gpt-oss-120b"
