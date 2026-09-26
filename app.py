@@ -1,81 +1,142 @@
 import os, requests, urllib.parse
-from flask import Flask, request, jsonify, send_from_directory, Response
+from flask import Flask, request, jsonify
+
 app = Flask(__name__)
-GROQ_KEY=os.environ.get("GROQ_API_KEY","").strip()
-UNSPLASH_KEY=os.environ.get("UNSPLASH_KEY","").strip()
-URL="https://api.groq.com/openai/v1/chat/completions"
+
+GROQ_KEY = os.environ.get("GROQ_API_KEY","").strip()
+UNSPLASH_KEY = os.environ.get("UNSPLASH_KEY","").strip()
+URL = "https://api.groq.com/openai/v1/chat/completions"
 
 def get_wiki(q):
-    low=q.lower()
+    low = q.lower()
     if "nigeria" in low and "coat" in low:
-        return "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Coat_of_arms_of_Nigeria.svg/800px-Coat_of_arms_of_Nigeria.svg.png"
+        return "https://upload.wikimedia.org/wikipedia/commons/7/79/Coat_of_arms_of_Nigeria.svg"
     if "nigeria" in low and "flag" in low:
-        return "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Flag_of_Nigeria.svg/800px-Flag_of_Nigeria.svg.png"
+        return "https://upload.wikimedia.org/wikipedia/commons/7/79/Flag_of_Nigeria.svg"
     try:
-        s=requests.get(f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={urllib.parse.quote(q)}&format=json&srlimit=1",timeout=8,headers={"User-Agent":"TitechAI"}).json()
-        if not s["query"]["search"]: return None
-        title=s["query"]["search"][0]["title"]
-        p=requests.get(f"https://en.wikipedia.org/w/api.php?action=query&titles={urllib.parse.quote(title)}&prop=pageimages&format=json&pithumbsize=800",timeout=8,headers={"User-Agent":"TitechAI"}).json()
-        for v in p["query"]["pages"].values():
-            if "thumbnail" in v: return v["thumbnail"]["source"]
-    except: pass
+        s = requests.get(f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={q}&format=json", timeout=5).json()
+        if not s["query"]["search"]:
+            return None
+        title = s["query"]["search"][0]["title"]
+        img = requests.get(f"https://en.wikipedia.org/w/api.php?action=query&titles={title}&prop=pageimages&pithumbsize=500&format=json", timeout=5).json()
+        pages = img["query"]["pages"]
+        for p in pages.values():
+            if "thumbnail" in p:
+                return p["thumbnail"]["source"]
+    except:
+        pass
     return None
 
 def get_unsplash(q):
-    if not UNSPLASH_KEY: return None
+    if not UNSPLASH_KEY:
+        return None
     try:
-        r=requests.get(f"https://api.unsplash.com/search/photos?query={urllib.parse.quote(q)}&per_page=1",headers={"Authorization":f"Client-ID {UNSPLASH_KEY}"},timeout=8).json()
-        if r.get("results"): return r["results"][0]["urls"]["regular"]
-    except: pass
+        r = requests.get(f"https://api.unsplash.com/search/photos?query={urllib.parse.quote(q)}&per_page=1&client_id={UNSPLASH_KEY}", timeout=5).json()
+        if r.get("results"):
+            return r["results"][0]["urls"]["regular"]
+    except:
+        pass
     return None
 
-@app.route("/logo.png")
-def logo_file():
-    return send_from_directory(".", "logo.png")
-
-@app.route("/proxy")
-def proxy():
-    img_url = request.args.get("url","")
-    if not img_url: return "no url", 400
-    try:
-        r = requests.get(img_url, headers={"User-Agent":"Mozilla/5.0"}, timeout=10)
-        return Response(r.content, content_type=r.headers.get("Content-Type","image/png"))
-    except: return "error", 500
+HTML_PAGE = """
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TITECH AI</title>
+<style>
+body{background:#070c1f;color:white;font-family:Arial;margin:0}
+.top{background:#111a3a;padding:16px;text-align:center;font-weight:bold;font-size:18px;letter-spacing:1px}
+#chat{padding:15px;padding-bottom:95px;display:flex;flex-direction:column;gap:14px;min-height:70vh}
+.user{background:#2b5cff;align-self:flex-end;padding:10px 14px;border-radius:18px 18px 2px 18px;max-width:80%;word-wrap:break-word}
+.ai{background:#1a2447;align-self:flex-start;padding:12px 14px;border-radius:14px 14px 14px 2px;max-width:85%;position:relative}
+.ai img{width:100%;border-radius:10px;margin-top:8px;display:block}
+.txt{white-space:pre-wrap;line-height:1.4}
+.btns{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+.small{background:#24315f;color:#a9c2ff;border:1px solid #32407a;padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer}
+.small:active{background:#2f4488}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#0f1936;padding:10px;display:flex;gap:8px;border-top:1px solid #1e2a5a}
+#inp{flex:1;background:#1a2447;border:none;color:white;padding:13px 16px;border-radius:25px;outline:none}
+#send{background:#2b5cff;border:none;color:white;padding:13px 20px;border-radius:25px;font-weight:bold}
+</style>
+</head>
+<body>
+<div class="top">TITECH AI ✨</div>
+<div id="chat">
+<div class="ai"><div class="txt">Hello! I am TITECH AI. Ask me anything. You can now Copy my replies and Save images.</div>
+<div class="btns"><button class="small" onclick="copyT(this)">📋 Copy</button></div>
+</div>
+</div>
+<div class="bottom">
+<input id="inp" placeholder="Ask me anything..." autocomplete="off">
+<button id="send" onclick="sendMsg()">Send</button>
+</div>
+<script>
+const chat=document.getElementById('chat');
+const inp=document.getElementById('inp');
+function copyT(btn){
+  const txt = btn.closest('.ai').querySelector('.txt').innerText;
+  navigator.clipboard.writeText(txt).then(()=>{
+    let old=btn.innerText; btn.innerText='✅ Copied';
+    setTimeout(()=>btn.innerText=old,1500);
+  });
+}
+function saveImg(url){
+  const a=document.createElement('a');
+  a.href=url; a.download='titech-image.jpg'; a.target='_blank';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+async function sendMsg(){
+  const msg=inp.value.trim(); if(!msg) return;
+  chat.innerHTML+=`<div class="user">${msg}</div>`; inp.value=''; chat.scrollTop=chat.scrollHeight;
+  window.scrollTo(0,document.body.scrollHeight);
+  const res=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});
+  const data=await res.json();
+  let html=`<div class="ai"><div class="txt">${data.reply}</div>`;
+  if(data.image){
+    html+=`<img src="${data.image}" crossorigin="anonymous"><div class="btns"><button class="small" onclick="saveImg('${data.image}')">⬇️ Save Image</button></div>`;
+  }
+  html+=`<div class="btns"><button class="small" onclick="copyT(this)">📋 Copy Text</button></div></div>`;
+  chat.innerHTML+=html;
+  window.scrollTo(0,document.body.scrollHeight);
+}
+inp.addEventListener('keypress',e=>{ if(e.key==='Enter') sendMsg(); });
+</script>
+</body>
+</html>
+"""
 
 @app.route("/")
 def home():
-    return """<html><head><meta name=viewport content='width=device-width,initial-scale=1'><title>Titech AI</title></head><body style='margin:0;background:#070a14;color:#fff;font-family:system-ui;display:flex;flex-direction:column;height:100vh'>
-<div style='padding:12px 16px;background:#0d1120;border-bottom:1px solid #1e294d;display:flex;align-items:center;gap:12px;font-weight:800;font-size:18px'><img src='/logo.png' style='width:38px;height:38px;border-radius:10px' onerror="this.style.display='none'">TITECH AI</div>
-<div id=chat style='flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px;padding-bottom:120px'></div>
-<div style='position:fixed;bottom:0;left:0;right:0;padding:12px;background:#070a14'><div style='display:flex;gap:8px;background:#121a33;border:1px solid #2a365f;border-radius:28px;padding:6px 6px 6px 16px'><input id=inp placeholder='Ask me... add full explanation for long answer' style='flex:1;background:transparent;border:none;color:#fff;outline:none'><button onclick=send() style='background:#2563eb;border:none;color:#fff;border-radius:20px;padding:10px 18px;font-weight:700'>Send</button></div></div>
-<script>let c=document.getElementById('chat');async function send(){let i=document.getElementById('inp'),t=i.value.trim();if(!t)return;c.innerHTML+=`<div style='align-self:flex-end;background:#2563eb;padding:12px 16px;border-radius:18px;max-width:80%'>${t}</div>`;i.value='';c.innerHTML+=`<div id=tmp style='align-self:flex-start;background:#161f3a;padding:12px;border-radius:18px'>...</div>`;c.scrollTop=c.scrollHeight;let r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t})});let d=await r.json();document.getElementById('tmp')?.remove();let imgHtml=d.image?`<div style='margin-top:10px;border-radius:12px;overflow:hidden;background:#fff'><img src="/proxy?url=${encodeURIComponent(d.image)}" style='width:100%;max-height:500px;object-fit:contain;display:block'></div>`:'';c.innerHTML+=`<div style='align-self:flex-start;background:#161f3a;border:1px solid #243157;padding:12px;border-radius:18px;max-width:85%'>${d.reply}${imgHtml}</div>`;c.scrollTop=c.scrollHeight}document.getElementById('inp').addEventListener('keydown',e=>{if(e.key==='Enter')send()});c.innerHTML+=`<div style='align-self:flex-start;background:#161f3a;padding:12px;border-radius:18px'>Hi! I answer short. Add "full explanation" if you want long answer.</div>`;</script></body></html>"""
+    return HTML_PAGE
 
-@app.route("/chat",methods=["POST"])
+@app.route("/chat", methods=["POST"])
 def chat():
-    m=request.get_json().get("message","")
-    low=m.lower()
-    clean=low.replace("generate","").replace("a image of","").replace("image of","").replace("picture of","").replace("photo of","").strip()
-    if any(w in low for w in ["image","picture","photo","flag","coat","lion","iphone","stadium","hilux","benz"]):
-        url=get_wiki(clean) or get_unsplash(clean)
-        if url: return jsonify({"reply":f"✅ {clean.title()}","image":url})
-        return jsonify({"reply":f"No real image for {clean}."})
+    q = request.json.get("message","")
+    image_url = None
+    # try to find image if user asks for image
+    low = q.lower()
+    if any(w in low for w in ["image","photo","picture","flag","coat","logo","show"]):
+        image_url = get_wiki(q) or get_unsplash(q)
 
-    # CHECK IF USER WANTS FULL EXPLANATION
-    wants_full = any(x in low for x in ["full explanation", "full details", "in detail", "detailed", "explain well", "long answer", "elaborate"])
-
-    if wants_full:
-        system_prompt = "You are TITECH AI created by Timileyin Samson. User wants FULL EXPLANATION. Give detailed, well structured answer with bullet points and examples. Be clear. You are NOT ChatGPT."
-        max_tokens = 800
-    else:
-        system_prompt = "You are TITECH AI created by Timileyin Samson. RULE: Answer SHORT. 2-3 lines max. Straight to point. No essay. If user wants more, tell them to add 'full explanation'. You are NOT ChatGPT. Be friendly."
-        max_tokens = 150
-
+    # Groq chat
     try:
-        h={"Authorization":f"Bearer {GROQ_KEY}","Content-Type":"application/json"}
-        d={"model":"openai/gpt-oss-120b","messages":[{"role":"system","content":system_prompt},{"role":"user","content":m}],"max_tokens":max_tokens,"temperature":0.7}
-        r=requests.post(URL,headers=h,json=d,timeout=20).json()
-        return jsonify({"reply":r["choices"][0]["message"]["content"]})
-    except:
-        return jsonify({"reply":"I be Titech AI by Timileyin Samson. Add 'full explanation' if you want long answer."})
+        if not GROQ_KEY:
+            reply = "Groq API Key not set. Please set GROQ_API_KEY in Render Environment."
+        else:
+            headers = {"Authorization": f"Bearer {GROQ_KEY}", "Content-Type": "application/json"}
+            payload = {
+                "model": "llama-3.1-8b-instant",
+                "messages": [{"role":"user","content": q}]
+            }
+            r = requests.post(URL, headers=headers, json=payload, timeout=20)
+            j = r.json()
+            reply = j["choices"][0]["message"]["content"]
+    except Exception as e:
+        reply = f"Error: {e}"
 
-if __name__=="__main__": app.run(host="0.0.0.0",port=int(os.environ.get("PORT",10000)))
+    return jsonify({"reply": reply, "image": image_url})
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
