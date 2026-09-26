@@ -8,6 +8,48 @@ URL = "https://api.groq.com/openai/v1/chat/completions"
 def get_wiki_image(query):
     try:
         low = query.lower()
+        # For new products use AI only
+        skip = ["iphone","samsung","galaxy","hilux","benz","tesla","laptop","sneaker","car","airplane","aeroplane","phone 17"]
+        if any(w in low for w in skip):
+            return None
+
+        # 1. Search page
+        s_url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={urllib.parse.quote(query)}&format=json&srlimit=1"
+        r = requests.get(s_url, timeout=10, headers={"User-Agent":"TitechAI/1.0"}).json()
+        if not r.get("query", {}).get("search"):
+            return None
+        title = r["query"]["search"][0]["title"]
+
+        # 2. Get ALL images on that page, not just thumbnail
+        img_list_url = f"https://en.wikipedia.org/w/api.php?action=query&titles={urllib.parse.quote(title)}&prop=images&format=json&imlimit=20"
+        r2 = requests.get(img_list_url, timeout=10, headers={"User-Agent":"TitechAI/1.0"}).json()
+        pages = r2.get("query", {}).get("pages", {})
+        image_titles = []
+        for pid in pages:
+            for img in pages[pid].get("images", []):
+                image_titles.append(img["title"])
+
+        # 3. Get real URL for each image, pick best PNG/JPG
+        for img_title in image_titles:
+            # Skip logos, icons
+            if any(x in img_title.lower() for x in ["icon","commons","wikidata"]):
+                continue
+            info_url = f"https://en.wikipedia.org/w/api.php?action=query&titles={urllib.parse.quote(img_title)}&prop=imageinfo&iiprop=url&format=json"
+            r3 = requests.get(info_url, timeout=10, headers={"User-Agent":"TitechAI/1.0"}).json()
+            pgs = r3.get("query", {}).get("pages", {})
+            for p in pgs:
+                url = pgs[p].get("imageinfo", [{}])[0].get("url","")
+                if url and any(url.lower().endswith(ext) for ext in [".png",".jpg",".jpeg",".webp"]):
+                    # Prefer coat of arms / flag images
+                    if "coat" in low or "flag" in low:
+                        if any(k in url.lower() or k in img_title.lower() for k in ["coat","arms","flag","nigeria"]):
+                            return url, title
+                    return url, title
+    except:
+        return None
+    return None
+    try:
+        low = query.lower()
         skip = ["iphone","samsung","galaxy","hilux","benz","tesla","laptop","sneaker","car","airplane","aeroplane"]
         if any(w in low for w in skip):
             return None
@@ -45,7 +87,9 @@ header{padding:12px 16px;display:flex;align-items:center;gap:12px;background:#0d
 .user{align-self:flex-end;background:linear-gradient(135deg,#2563eb,#4f46e5);color:white;border-bottom-right-radius:6px}
 .ai{align-self:flex-start;background:#161f3a;border:1px solid #243157;color:#dbe4ff;border-bottom-left-radius:6px}
 .img-wrap{width:100%;height:340px;overflow:hidden;border-radius:16px;margin-top:12px;border:1px solid #2a365f;background:#0a0f20;display:flex;align-items:center;justify-content:center}
-.img-wrap img{width:100%;height:100%;object-fit:contain}
+.img-wrap{width:100%;height:360px;overflow:hidden;border-radius:16px;margin-top:12px;border:1px solid #2a365f;background:#0a0f20;display:flex;align-items:center;justify-content:center;position:relative}
+.img-wrap img{width:100%;height:100%;object-fit:cover}
+.img-wrap::after{content:'';position:absolute;bottom:0;left:0;right:0;height:28px;background:#0a0f20;z-index:2}
 #bar{position:fixed;bottom:0;left:0;right:0;padding:14px;background:linear-gradient(to top,#070a14 85%,transparent);display:flex;justify-content:center}
 .bar-inner{display:flex;gap:10px;align-items:center;width:100%;max-width:900px;background:#121a33;border:1px solid #2a365f;border-radius:28px;padding:7px 7px 7px 18px}
 .bar-inner input{flex:1;background:transparent;border:none;color:#fff;outline:none;font-size:15px;padding:10px 0}
