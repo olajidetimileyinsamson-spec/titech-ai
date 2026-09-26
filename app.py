@@ -1,55 +1,64 @@
-import os
-import requests
-from flask import Flask, request, jsonify, render_template_string
-import urllib.parse
+import os, requests, urllib.parse
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
-
-# --- GET KEY ---
-GROQ_KEY = os.environ.get("GROQ_API_KEY", "").strip()
-print(f"DEBUG KEY CHECK: Found key? {bool(GROQ_KEY)} Length: {len(GROQ_KEY)} Starts with: {GROQ_KEY[:8] if GROQ_KEY else 'NONE'}")
-
+GROQ_KEY = os.environ.get("GROQ_API_KEY","").strip()
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
-def ask_groq(message):
-    if not GROQ_KEY or not GROQ_KEY.startswith("gsk_"):
-        return "❌ ERROR: GROQ_API_KEY missing on Render. Go to Render -> Environment -> check key name is GROQ_API_KEY and value starts with gsk_. Then Save + Manual Deploy."
+HTML = """
+<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titech AI</title>
+<style>
+body{background:#0a0a0a;color:white;font-family:sans-serif;margin:0;display:flex;flex-direction:column;height:100vh}
+#chat{flex:1;overflow-y:auto;padding:20px}
+.msg{margin:10px 0;padding:12px 16px;border-radius:12px;max-width:85%}
+.user{background:#2563eb;margin-left:auto}
+.ai{background:#1f1f1f}
+#bar{display:flex;padding:12px;background:#111;gap:8px}
+input{flex:1;padding:12px;border-radius:8px;border:none;background:#222;color:white}
+button{padding:12px 20px;border-radius:8px;border:none;background:#2563eb;color:white;font-weight:bold}
+img{max-width:100%;border-radius:10px;margin-top:8px}
+</style></head><body>
+<div id="chat"><div class="msg ai">👋 I'm Titech AI by Timileyin Samson. Ask me anything or say "generate image of..."</div></div>
+<div id="bar"><input id="inp" placeholder="Ask Titech AI..."><button onclick="send()">Send</button></div>
+<script>
+async function send(){
+ let inp=document.getElementById('inp'); let txt=inp.value.trim(); if(!txt)return;
+ let chat=document.getElementById('chat');
+ chat.innerHTML+=`<div class="msg user">${txt}</div>`; inp.value=''; chat.scrollTop=chat.scrollHeight;
+ let r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:txt})});
+ let d=await r.json();
+ let html=`<div class="msg ai">${d.reply.replace(/\\n/g,'<br>')}`;
+ if(d.image){ html+=`<br><img src="${d.image}"><br><a href="${d.image}" target="_blank" download><button>Download Image</button></a>`; }
+ html+=`</div>`;
+ chat.innerHTML+=html; chat.scrollTop=chat.scrollHeight;
+}
+document.getElementById('inp').addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+</script></body></html>
+"""
 
-    headers = {"Authorization": f"Bearer {GROQ_KEY}", "Content-Type": "application/json"}
-    data = {
-        "model": "llama-3.3-70b-versatile",
-        "messages": [
-            {"role": "system", "content": "You are Titech AI, created by Timileyin Samson. Friendly, smart, explain well. Support Yoruba, English, Pidgin."},
-            {"role": "user", "content": message}
-        ],
-        "temperature": 0.7
-    }
+def ask_groq(msg):
+    if not GROQ_KEY: return "❌ GROQ_API_KEY missing on Render. Add it in Environment."
+    headers={"Authorization":f"Bearer {GROQ_KEY}","Content-Type":"application/json"}
+    payload={"model":"llama-3.3-70b-versatile","messages":[{"role":"system","content":"You are Titech AI by Timileyin Samson. Helpful."},{"role":"user","content":msg}]}
     try:
-        r = requests.post(GROQ_URL, headers=headers, json=data, timeout=30)
-        print(f"GROQ Status: {r.status_code} Body: {r.text[:200]}")
-        if r.status_code!= 200:
-            return f"Groq API Error {r.status_code}: {r.text[:200]} - Check your key is valid at console.groq.com"
+        r=requests.post(GROQ_URL,headers=headers,json=payload,timeout=40)
+        if r.status_code!=200: return f"Groq error {r.status_code}: {r.text[:150]}"
         return r.json()["choices"][0]["message"]["content"]
-    except Exception as e:
-        print(f"Exception: {e}")
-        return f"Connection error: {str(e)}"
+    except Exception as e: return f"Error: {e}"
 
 @app.route("/")
-def index():
-    # your HTML here - keep your current index.html content
-    return render_template_string(open("templates/index.html").read() if os.path.exists("templates/index.html") else "<h1>Titech AI</h1>")
+def home(): return HTML
 
-@app.route("/chat", methods=["POST"])
+@app.route("/chat",methods=["POST"])
 def chat():
-    user_msg = request.json.get("message", "")
-    if "generate image of" in user_msg.lower() or "a picture of" in user_msg.lower():
-        prompt = user_msg.lower().replace("generate image of","").replace("a picture of","").strip()
-        encoded = urllib.parse.quote(prompt)
-        url = f"https://image.pollinations.ai/prompt/{encoded}"
-        return jsonify({"reply": f"Here you go! **{prompt}**:", "image": url})
+    m=request.get_json().get("message","")
+    low=m.lower()
+    if "generate image" in low or "picture of" in low:
+        prompt=low.replace("generate image of","").replace("generate image","").replace("a picture of","").replace("picture of","").strip() or "futuristic tech"
+        url=f"https://image.pollinations.ai/prompt/{urllib.parse.quote(prompt)}?nologo=true&seed={os.urandom(2).hex()}"
+        return jsonify({"reply":f"Here is your image for **{prompt}**:","image":url})
+    return jsonify({"reply":ask_groq(m)})
 
-    reply = ask_groq(user_msg)
-    return jsonify({"reply": reply})
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+if __name__=="__main__":
+    app.run(host="0.0.0.0",port=int(os.environ.get("PORT",10000)))
