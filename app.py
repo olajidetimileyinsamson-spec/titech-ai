@@ -122,7 +122,7 @@ def chat():
             reply = "Groq API Key not set in Render Environment."
         else:
             headers = {"Authorization": f"Bearer {GROQ_KEY}", "Content-Type": "application/json"}
-            payload = {"model": "llama-3.1-8b-instant", "messages": [{"role":"user","content": q}]}
+            payload = {"model": "openai/gpt-oss-120b", "messages": [{"role":"user","content": q}]}
             r = requests.post(URL, headers=headers, json=payload, timeout=20)
             j = r.json()
             if "choices" in j:
