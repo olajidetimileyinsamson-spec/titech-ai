@@ -98,13 +98,27 @@ async function send(){
   wrap.innerHTML=`<div class="ai">Thinking... 🤔💭</div>`; chat.appendChild(wrap); chat.scrollTop=chat.scrollHeight;
 
   try{
-    let res=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})});
-    let data=await res.json();
-    document.getElementById('typing').remove();
-    addMsg(data.reply || data.response || "Oops! Something went wrong 😅 Try again!", 'ai');
-  }catch(e){
-    document.getElementById('typing').remove();
-    addMsg("Network error 🚨 Abeg check your connection and try again!", 'ai');
+    // CHECK IF NA IMAGE
+    if(text.toLowerCase().includes('generate') || text.toLowerCase().includes('create image') || text.toLowerCase().includes('draw') || text.toLowerCase().includes('image')){
+      wrap.innerHTML=`<div class="ai">Generating image... 🎨✨</div>`;
+      let res=await fetch('/generate-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:text})});
+      let data=await res.json();
+      wrap.remove();
+      if(data.image_url){
+        addMsg(`<img src="${data.image_url}" style="width:100%;max-width:500px;border-radius:12px;"><br><small>${text}</small>`, 'ai');
+      } else {
+        addMsg('Image failed, try again bro', 'ai');
+      }
+    } else {
+      // NORMAL CHAT
+      let res=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})});
+      let data=await res.json();
+      wrap.remove();
+      addMsg(data.reply || data.response || 'No reply', 'ai');
+    }
+  } catch(e){
+    let t=document.getElementById('typing'); if(t) t.remove();
+    addMsg('Error: '+e.message, 'ai');
   }
 }
 
