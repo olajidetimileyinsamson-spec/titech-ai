@@ -1,124 +1,68 @@
+from flask import Flask, render_template, request, jsonify, session
 import os
 import requests
-from flask import Flask, request, jsonify, render_template
-from flask_cors import CORS
+import uuid
 
 app = Flask(__name__)
-CORS(app)
+app.secret_key = os.environ.get("SECRET_KEY", "titech-ai-secret-123")
 
-GROQ_KEY = os.getenv("GROQ_API_KEY")
-UNSPLASH_KEY = os.getenv("UNSPLASH_KEY") # optional
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+MODEL = "openai/gpt-oss-120b"
 
-# MEMORY - simple in-memory chat history
-chat_memory = {}
+SYSTEM_PROMPT = """You are Titech AI 🚀, created by Titech. You are playful, smart, helpful.
+Never say you are ChatGPT, OpenAI, GPT, or any other AI. You are ONLY Titech AI 🚀.
+Use emojis sometimes ✨😎🔥, be friendly, concise, Naija-vibes but global.
+Remember what user said earlier in this chat - you have memory.
 
-SYSTEM_PROMPT = """You are TITECH AI, proudly built by Timileyin Samson.
-You are playful, friendly, witty, and helpful. You love making users smile.
-You were built by Timileyin Samson - always say that if asked who built you.
-Contact for builder: olajidetimileyinsamson@gmail.com
-Never mention OpenAI, ChatGPT, Meta, Llama, or any other company. You are TITECH AI.
-Keep answers short, fun, and helpful.
+IMPORTANT CONTACT RULE:
+If user asks for your Gmail, email, contact, how to reach you, owner contact, developer contact, support, creator email:
+You MUST reply: "You can reach my creator Titech at 📧 olajidetimileyinsamson@gmail.com 🚀"
+Always give exactly that email when asked for contact. Never give any other email.
 """
 
-def get_wiki_image(query):
-    try:
-        url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{query.strip()}"
-        r = requests.get(url, timeout=5)
-        if r.status_code == 200:
-            data = r.json()
-            if "thumbnail" in data:
-                return data["thumbnail"]["source"]
-    except:
-        pass
-    return None
-
-def get_unsplash_image(query):
-    try:
-        if not UNSPLASH_KEY:
-            return None
-        url = f"https://api.unsplash.com/search/photos?query={query}&per_page=1&client_id={UNSPLASH_KEY}"
-        r = requests.get(url, timeout=5)
-        if r.status_code == 200:
-            results = r.json().get("results")
-            if results:
-                return results[0]["urls"]["regular"]
-    except:
-        pass
-    return None
-
-@app.route("/")
+@app.route('/')
 def home():
-    return render_template("index.html")
+    if 'user_id' not in session:
+        session['user_id'] = str(uuid.uuid4())
+    if 'history' not in session:
+        session['history'] = []
+    return render_template('index.html')
 
-@app.route("/chat", methods=["POST"])
+@app.route('/chat', methods=['POST'])
 def chat():
     data = request.get_json()
-    q = data.get("q", "").strip()
-    if not q:
-        return jsonify({"reply": "Say something 😊", "image": None})
-
-    image_url = None
-    low = q.lower()
-    session_id = data.get("session_id", "default")
-
-    # Identity
-    if any(w in low for w in ["who are you", "who built you", "who made you", "your creator", "your builder"]):
-        return jsonify({"reply": "I am TITECH AI ✨ proudly built by Timileyin Samson! How can I help you today?", "image": None})
-
-    # Contact
-    if any(w in low for w in ["contact", "gmail", "email", "reach"]):
-        if "contact" in low or "gmail" in low or "email" in low:
-            return jsonify({"reply": "You can contact my builder Timileyin Samson at olajidetimileyinsamson@gmail.com 📧", "image": None})
-
-    # Image request
-    if any(w in low for w in ["image", "photo", "picture", "show me"]):
-        image_url = get_wiki_image(q) or get_unsplash_image(q)
-        if image_url:
-            return jsonify({"reply": f"Here is an image for '{q}' ✨", "image": image_url})
-
-    # Memory - save chat
-    if session_id not in chat_memory:
-        chat_memory[session_id] = []
-    chat_memory[session_id].append({"role": "user", "content": q})
-    # Keep last 10 messages
-    chat_memory[session_id] = chat_memory[session_id][-10:]
-
-    # Groq Call
+    user_msg = data.get('message', '')
+    if 'history' not in session:
+        session['history'] = []
+    session['history'].append({"role": "user", "content": user_msg})
+    if len(session['history']) > 20:
+        session['history'] = session['history'][-20:]
+    if not GROQ_API_KEY:
+        return jsonify({"reply": "Omo! 🚨 No API key set. Add GROQ_API_KEY in Render Env! 🔑"})
     try:
-        if not GROQ_KEY:
-            reply = "Groq API Key is missing. Add GROQ_API_KEY in Render Environment."
-        else:
-            headers = {
-                "Authorization": f"Bearer {GROQ_KEY}",
-                "Content-Type": "application/json"
-            }
-            messages = [{"role": "system", "content": SYSTEM_PROMPT}] + chat_memory[session_id]
-
-            payload = {
-                "model": "openai/gpt-oss-120b",
-                "messages": messages,
-                "temperature": 0.8,
-                "max_tokens": 800
-            }
-            r = requests.post("https://api.groq.com/openai/v1/chat/completions", json=payload, headers=headers, timeout=30)
-            if r.status_code == 200:
-                reply = r.json()["choices"][0]["message"]["content"]
-                chat_memory[session_id].append({"role": "assistant", "content": reply})
-            else:
-                reply = f"Oops! Groq error: {r.text[:200]}"
-
+        messages = [{"role": "system", "content": SYSTEM_PROMPT}] + session['history']
+        resp = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
+            json={"model": MODEL, "messages": messages, "temperature": 0.8, "max_tokens": 1000},
+            timeout=30
+        )
+        reply = resp.json()['choices'][0]['message']['content']
+        session['history'].append({"role": "assistant", "content": reply})
+        session.modified = True
+        return jsonify({"reply": reply})
     except Exception as e:
-        reply = f"Server hiccup: {str(e)}"
+        print(e)
+        return jsonify({"reply": "Oops! 😅 Try again! 🚀"})
 
-    return jsonify({"reply": reply, "image": image_url})
-
-@app.route("/feedback", methods=["POST"])
+@app.route('/feedback', methods=['POST'])
 def feedback():
-    data = request.get_json()
-    fb = data.get("feedback", "")
-    # You can save to file or just log it - for now log in Render logs
-    print(f"FEEDBACK: {fb}")
-    return jsonify({"status": "thanks", "message": "Thanks for your feedback! 💙"})
+    return jsonify({"status": "ok"})
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+@app.route('/clear', methods=['POST'])
+def clear():
+    session['history'] = []
+    return jsonify({"status": "cleared"})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
