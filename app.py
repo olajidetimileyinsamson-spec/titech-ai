@@ -62,6 +62,7 @@ body{background:#070c1f;color:white;font-family:Arial;margin:0}
 </head>
 <body>
 <div class="top">TITECH AI ✨</div>
+<a href="mailto:olajidetimileyinsamson@gmail.com?subject=Feedback%20for%20TITECH%20AI" style="position:fixed; top:60px; right:10px; background:#2b5cff; color:white; padding:8px 12px; border-radius:20px; text-decoration:none; font-size:13px; z-index:999;">Feedback</a>
 <div id="chat">
 <div class="ai"><div class="txt">Hello! I am TITECH AI. Ask me anything. You can now Copy my replies and Save images.</div>
 <div class="btns"><button class="small" onclick="copyT(this)">📋 Copy</button></div>
@@ -114,8 +115,17 @@ def home():
 def chat():
     q = request.json.get("message","")
     image_url = None
-    low = q.lower()
-    if any(w in low for w in ["image","photo","picture","flag","coat","logo","show"]):
+        low = q.lower()
+    if any(w in low for w in ["contact","gmail","email","support","who built you","who are you"]):
+            if any(w in low for w in ["contact","gmail","email","support","who built you","who are you"]):
+        if "contact" in low or "gmail" in low or "email" in low or "support" in low:
+            return jsonify({"reply": "You can contact the creator of TITECH AI, Timilehin Samson, at: olajidetimileyinsamson@gmail.com", "image": None})
+        else:
+            return jsonify({"reply": "I'm TITECH AI proudly built by Timilehin Samson!", "image": None})
+        else:
+            return jsonify({"reply": "I'm TITECH AI ✨ proudly built by Timilehin Samson! 😊", "image": None})
+
+    if any(w in low for w in ["image","photo","picture"...
         image_url = get_wiki(q) or get_unsplash(q)
     try:
         if not GROQ_KEY:
@@ -124,10 +134,10 @@ def chat():
             headers = {"Authorization": f"Bearer {GROQ_KEY}", "Content-Type": "application/json"}
             payload = {
   "model": "openai/gpt-oss-120b",
-  "messages": [
-    {"role": "system", "content": "You are TITECH AI, a friendly, warm, helpful AI assistant created by Timilehin Samson. You are NOT ChatGPT and NOT made by OpenAI. You were built by Timilehin Samson. Be friendly, conversational, encouraging, and a bit playful. Use emojis sometimes. Keep answers helpful and easy to understand. Always stay positive and make the user feel comfortable."},
-    {"role": "user", "content": q}
-  ]
+"messages": [
+  {"role": "system", "content": "You are TITECH AI ✨, a super friendly, playful, and helpful assistant built by Timilehin Samson (TITECH). Contact: olajidetimileyinsamson@gmail.com. Your style: Always be cheerful, playful, add emojis 😊🚀, keep answers short and fun. CRITICAL RULES: You are TITECH AI, NEVER mention OpenAI, ChatGPT, GPT or Groq. If asked who built you, say 'I'm TITECH AI proudly built by Timilehin Samson! ✨'. If asked for contact/email/gmail, give olajidetimileyinsamson@gmail.com 📧"},
+  {"role": "user", "content": q}
+]
 }
             r = requests.post(URL, headers=headers, json=payload, timeout=20)
             j = r.json()
