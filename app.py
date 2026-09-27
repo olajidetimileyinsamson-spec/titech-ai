@@ -121,17 +121,14 @@ def chat():
             return jsonify({"reply": "You can contact the creator at: olajidetimileyinsamson@gmail.com", "image": None})
         else:
             return jsonify({"reply": "I am TITECH AI proudly built by Timilehin Samson!", "image": None})
+
     if any(w in low for w in ["image", "photo", "picture"]):
         image_url = get_wiki_image(q) or get_unsplash_image(q)
+        return jsonify({"reply": f"Here is an image for: {q}", "image": image_url})
 
-    if any(w in low for w in ["image","photo","picture"]):
-        image_url = get_wiki(q) or get_unsplash(q)
-
-        if any(w in low for w in ["image", "photo", "picture"]):
-        image_url = get_wiki(q) or get_unsplash(q)
     try:
         if not GROQ_KEY:
-            reply = "Groq API Key not set in Render Environment."
+            reply = "Groq API Key is missing. Add it in Render Environment."
         else:
             headers = {"Authorization": f"Bearer {GROQ_KEY}", "Content-Type": "application/json"}
             payload = {
