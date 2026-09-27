@@ -115,15 +115,16 @@ def home():
 def chat():
     q = request.json.get("message","")
     image_url = None
-        low = q.lower()
+            q = data.get("q","")
+    low = q.lower()
     if any(w in low for w in ["contact","gmail","email","support","who built you","who are you"]):
-            if any(w in low for w in ["contact","gmail","email","support","who built you","who are you"]):
         if "contact" in low or "gmail" in low or "email" in low or "support" in low:
             return jsonify({"reply": "You can contact the creator of TITECH AI, Timilehin Samson, at: olajidetimileyinsamson@gmail.com", "image": None})
         else:
             return jsonify({"reply": "I'm TITECH AI proudly built by Timilehin Samson!", "image": None})
-        else:
-            return jsonify({"reply": "I'm TITECH AI ✨ proudly built by Timilehin Samson! 😊", "image": None})
+
+    if any(w in low for w in ["image","photo","picture"]):
+        image_url = get_wiki(q) or get_unsplash(q)
 
     if any(w in low for w in ["image","photo","picture"...
         image_url = get_wiki(q) or get_unsplash(q)
