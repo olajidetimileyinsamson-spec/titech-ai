@@ -89,11 +89,13 @@ def generate_image():
     data = request.get_json()
     prompt = data.get('prompt', '')
     if not prompt:
-        return jsonify({"error": "no prompt"})
-    enhanced = f"{prompt}, ultra detailed, 8k, photorealistic, sharp focus"
-    import urllib.parse
+        return jsonify({"error": "no prompt"}), 400
+    
+    enhanced = f"{prompt}, ultra detailed, 8k, photorealistic, sharp focus, highly detailed, cinematic lighting"
+    import urllib.parse, random
     encoded = urllib.parse.quote(enhanced)
-    image_url = f"https://image.pollinations.ai/prompt/{encoded}?model=flux&width=1024&height=1024&enhance=true&nologo=true"
+    seed = random.randint(1, 999999)
+    image_url = f"https://image.pollinations.ai/prompt/{encoded}?model=flux&width=1024&height=1024&enhance=true&nologo=true&private=true&seed={seed}"
     return jsonify({"image_url": image_url})
 
 
