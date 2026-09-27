@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from groq import Groq
 from tavily import TavilyClient
@@ -10,17 +10,24 @@ CORS(app)
 groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 tavily_client = TavilyClient(api_key=os.environ.get("TAVILY_API_KEY"))
 
-# FRONTEND + BACKEND IN ONE
+@app.route("/logo.png")
+def logo():
+    return send_from_directory(".", "logo.png")
+
 @app.route("/")
 def home():
     return """
 <!DOCTYPE html>
 <html>
 <head>
-<title>Titech AI</title>
+<title>Titech AI 🚀</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="/logo.png">
 <style>
 body{font-family:sans-serif;background:#000;color:#fff;margin:0;display:flex;flex-direction:column;height:100vh}
+.header{display:flex;align-items:center;justify-content:center;gap:10px;padding:15px;background:#0a0a0a;border-bottom:1px solid #222}
+.header img{width:38px;height:38px;border-radius:10px}
+.header h1{font-size:18px;margin:0}
 #chat{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column}
 .msg{margin:10px 0;padding:12px 16px;border-radius:18px;max-width:80%;word-wrap:break-word}
 .user{background:#007aff;align-self:flex-end}
@@ -28,11 +35,13 @@ body{font-family:sans-serif;background:#000;color:#fff;margin:0;display:flex;fle
 #bar{display:flex;padding:12px;background:#111;position:sticky;bottom:0}
 input{flex:1;padding:14px;border-radius:25px;border:none;outline:none;font-size:16px}
 button{margin-left:10px;padding:14px 22px;border-radius:25px;border:none;background:#007aff;color:#fff;font-weight:bold}
-h1{text-align:center;font-size:18px;padding:10px}
 </style>
 </head>
 <body>
-<h1>Titech AI - by Olajide Timilehin Samson (Titech) 🔥</h1>
+<div class="header">
+<img src="/logo.png" onerror="this.style.display='none'">
+<h1>Titech AI 🚀</h1>
+</div>
 <div id="chat"><div class="msg ai">Hi! I'm Titech AI by Olajide Timilehin Samson (Titech) 😊🔥 Ask me anything!</div></div>
 <div id="bar">
 <input id="input" placeholder="Ask Titech AI..." onkeypress="if(event.key==='Enter')send()">
@@ -65,18 +74,25 @@ chat.scrollTop=chat.scrollHeight;
 def chat():
     data = request.get_json()
     user_msg = data.get("message", "")
-
     try:
         search = tavily_client.search(user_msg, search_depth="advanced", max_results=5)
         context = "\\n".join([r["content"] for r in search["results"]])
     except:
         context = ""
-
-    system_prompt = f"""
+        system_prompt = f"""
 You are Titech AI, built ONLY by Olajide Timilehin Samson aka Titech.
-STRICT: Creator is ONLY Olajide. NEVER mention OpenAI/ChatGPT/Llama/Groq. NEVER invent private info. If asked private, say contact olajidetimileyinsamson@gmail.com. Use verified facts: {context}. Be friendly with emojis 😊🔥
-"""
 
+CRITICAL ANTI-HALLUCINATION RULES:
+- For ANY factual question (person, music, school, date, definition, news), you MUST use ONLY the Verified facts below.
+- If Verified facts is empty or does not contain the answer, you MUST reply: "I no get verified info about that yet, but I fit search am again for you 😅" — NEVER invent.
+- NEVER say Zinoleesky is Mavin Records. He is Marlian Music. Never invent record labels.
+- NEVER invent age, location, family, school of Olajide Timilehin Samson. If asked private, say: "I don't have that private info 😊 Contact olajidetimileyinsamson@gmail.com"
+- Creator is ONLY Olajide Timilehin Samson (Titech). No other person.
+- NEVER mention OpenAI, ChatGPT, Llama, Groq, Meta. You are ONLY Titech AI.
+- Be friendly, use emojis 😊🔥
+
+Verified facts from search: {context}
+"""
     try:
         completion = groq_client.chat.completions.create(
             model="openai/gpt-oss-120b",
