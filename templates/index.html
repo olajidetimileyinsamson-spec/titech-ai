@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Titech AI 🚀</title>
+<title> Titech AI 🚀</title>
 <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-4TGEVES8FL"></script>
 <script>
@@ -36,7 +36,7 @@ body { background:#0b1120; margin:0; font-family: -apple-system, BlinkMacSystemF
 
 <div class="header">
   <img src="{{ url_for('static', filename='logo.png') }}" onerror="this.style.display='none'" alt="">
-  <b>The Titech AI 🚀</b>
+  <b> Titech AI 🚀</b>
 </div>
 
 <div id="chat">
@@ -52,6 +52,9 @@ body { background:#0b1120; margin:0; font-family: -apple-system, BlinkMacSystemF
 
 <script>
 let chat = document.getElementById('chat');
+  // Load saved chat
+let saved = localStorage.getItem('titech_chat');
+if(saved){ chat.innerHTML = saved; }
 
 function addMsg(text, cls){
   if(cls==='user'){
@@ -79,6 +82,7 @@ function addMsg(text, cls){
     wrap.appendChild(div); wrap.appendChild(actions); chat.appendChild(wrap);
   }
   chat.scrollTop = chat.scrollHeight;
+  localStorage.setItem('titech_chat', chat.innerHTML);
 }
 
 async function send(){
