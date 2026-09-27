@@ -4,6 +4,11 @@ import requests
 import uuid
 
 app = Flask(__name__)
+from flask import send_file
+
+@app.route('/logo.png')
+def serve_logo():
+    return send_file('logo.png', mimetype='image/png')
 app.secret_key = os.environ.get("SECRET_KEY", "titech-ai-secret-123")
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
