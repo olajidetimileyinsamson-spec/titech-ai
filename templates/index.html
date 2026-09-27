@@ -54,7 +54,11 @@ body { background:#0b1120; margin:0; font-family: -apple-system, BlinkMacSystemF
 let chat = document.getElementById('chat');
   // Load saved chat
 let saved = localStorage.getItem('titech_chat');
-if(saved){ chat.innerHTML = saved; }
+if(saved && saved.includes('<div')){
+  chat.innerHTML = saved;
+} else {
+  localStorage.removeItem('titech_chat');
+}
 
 function addMsg(text, cls){
   if(cls==='user'){
