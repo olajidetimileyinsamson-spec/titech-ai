@@ -4,7 +4,7 @@ import requests
 import uuid
 
 app = Flask(__name__)
-from flask import send_file
+from flask import Flask, render_template, request, jsonify, session, send_file
 
 @app.route('/logo.png')
 def serve_logo():
