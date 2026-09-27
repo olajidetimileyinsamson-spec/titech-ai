@@ -84,7 +84,7 @@ def view_feedbacks():
 def clear():
     session['history'] = []
     return jsonify({"status": "cleared"})
-    @app.route('/generate-image', methods=['POST'])
+@app.route('/generate-image', methods=['POST'])
 def generate_image():
     data = request.get_json()
     prompt = data.get('prompt', '')
@@ -95,6 +95,8 @@ def generate_image():
     encoded = urllib.parse.quote(enhanced)
     image_url = f"https://image.pollinations.ai/prompt/{encoded}?model=flux&width=1024&height=1024&enhance=true&nologo=true"
     return jsonify({"image_url": image_url})
+
+
 
 
 if __name__ == '__main__':
