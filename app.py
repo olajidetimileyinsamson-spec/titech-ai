@@ -1,105 +1,56 @@
-from flask import Flask, render_template, request, jsonify, session
 import os
-import requests
-import uuid
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from groq import Groq
+from tavily import TavilyClient
 
 app = Flask(__name__)
-from flask import Flask, render_template, request, jsonify, session, send_file
+CORS(app)
 
-@app.route('/logo.png')
-def serve_logo():
-    return send_file('logo.png', mimetype='image/png')
-app.secret_key = os.environ.get("SECRET_KEY", "titech-ai-secret-123")
+groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+tavily_client = TavilyClient(api_key=os.environ.get("TAVILY_API_KEY"))
 
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-MODEL = "openai/gpt-oss-120b"
-
-SYSTEM_PROMPT = """You are Titech AI 🚀, created by Olajide Timileyin Samson (Timilehin Samson) aka Titech.
-Never say you are ChatGPT, OpenAI, GPT, or any other AI. You are ONLY Titech AI 🚀.
-Use emojis sometimes ✨😎🔥, be friendly, concise.
-
-IDENTITY:
-- Titech = Olajide Timileyin Samson (also called Timilehin Samson)
-- He is a Nigerian developer, creator of Titech AI.
-- Do NOT invent background like age, where he grew up, side projects, Discord, games. If you don't know details, just say he's a passionate Nigerian tech innovator building Titech AI.
-- When asked "Who is Titech?" -> Answer in 1-2 short lines: Titech is Olajide Timileyin Samson, Nigerian developer and creator of Titech AI 🚀
-- When asked "Do you know Timilehin Samson?" -> Yes! He's my creator - Olajide Timileyin Samson, builder of Titech AI 🚀
-
-CONTACT:
-If user asks Gmail/email/contact: Reply "You can reach my creator Titech at 📧 olajidetimileyinsamson@gmail.com 🚀" - ONLY this email.
-"""
-
-@app.route('/')
+@app.route("/")
 def home():
-    if 'user_id' not in session:
-        session['user_id'] = str(uuid.uuid4())
-    if 'history' not in session:
-        session['history'] = []
-    return render_template('index.html')
+    return "Titech AI is running!"
 
-@app.route('/chat', methods=['POST'])
+@app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json()
-    user_msg = data.get('message', '')
-    if 'history' not in session:
-        session['history'] = []
-    session['history'].append({"role": "user", "content": user_msg})
-    if len(session['history']) > 20:
-        session['history'] = session['history'][-20:]
-    if not GROQ_API_KEY:
-        return jsonify({"reply": "Omo! 🚨 No API key set. Add GROQ_API_KEY in Render Env! 🔑"})
+    user_msg = data.get("message", "")
+
     try:
-        messages = [{"role": "system", "content": SYSTEM_PROMPT}] + session['history']
-        resp = requests.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
-            json={"model": MODEL, "messages": messages, "temperature": 0.8, "max_tokens": 1000},
-            timeout=30
+        search = tavily_client.search(user_msg, max_results=5)
+        context = "\n".join([r["content"] for r in search["results"]])
+    except:
+        context = "No search result."
+
+    system_prompt = f"""
+You are Titech AI, created and owned by Olajide Timilehin Samson, also known as Titech.
+
+CRITICAL RULES:
+1. Your creator is Olajide Timilehin Samson (Titech).
+2. NEVER mention OpenAI, ChatGPT, Llama, Groq, Meta. You are ONLY Titech AI.
+3. NEVER invent private info about Olajide Timilehin Samson - like age, location, school, phone, address, family. If asked private info you don't know, say: "I don't have that private info about my creator Olajide Timilehin Samson (Titech) 😊 You can contact him at olajidetimileyinsamson@gmail.com"
+4. Don't hallucinate. Use verified search results only: {context}
+5. Be friendly, use emojis 😊🔥✨
+6. If user asks for contact/gmail/support, give: olajidetimileyinsamson@gmail.com
+"""
+
+    try:
+        completion = groq_client.chat.completions.create(
+            model="openai/gpt-oss-120b",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_msg}
+            ],
+            temperature=0.6,
+            max_tokens=1024
         )
-        reply = resp.json()['choices'][0]['message']['content']
-        session['history'].append({"role": "assistant", "content": reply})
-        session.modified = True
-        return jsonify({"reply": reply})
+        return jsonify({"reply": completion.choices[0].message.content})
     except Exception as e:
         print(e)
-        return jsonify({"reply": "Oops! 😅 Try again! 🚀"})
+        return jsonify({"reply": "Titech AI dey reload, try again 😅"}), 500
 
-feedbacks = []
-
-@app.route('/feedback', methods=['POST'])
-def feedback():
-    data = request.get_json()
-    msg = data.get('message', '')
-    type = data.get('type', '') # like / dislike
-    feedbacks.append({"type": type, "message": msg})
-    print(f"NEW FEEDBACK {type}: {msg[:100]}") # You will see this in Render Logs!
-    return jsonify({"status": "ok"})
-
-@app.route('/admin/feedbacks')
-def view_feedbacks():
-    # Only you can see this: titech-ai.onrender.com/admin/feedbacks
-    return jsonify(feedbacks)
-
-@app.route('/clear', methods=['POST'])
-def clear():
-    session['history'] = []
-    return jsonify({"status": "cleared"})
-@app.route('/generate-image', methods=['POST'])
-def generate_image():
-    data = request.get_json()
-    prompt = data.get('prompt', '')
-    if not prompt:
-        return jsonify({"error": "no prompt"}), 400
-    
-    enhanced = f"{prompt}, ultra detailed, 8k, photorealistic, sharp focus, highly detailed, cinematic lighting"
-    import urllib.parse, random
-    encoded = urllib.parse.quote(enhanced)
-    seed = random.randint(1, 999999)
-    image_url = f"https://image.pollinations.ai/prompt/{encoded}?model=flux&width=1024&height=1024&enhance=true&nologo=true&private=true&seed={seed}"
-    return jsonify({"image_url": image_url})
-
-
-
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
