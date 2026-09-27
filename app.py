@@ -59,9 +59,21 @@ def chat():
         print(e)
         return jsonify({"reply": "Oops! 😅 Try again! 🚀"})
 
+feedbacks = []
+
 @app.route('/feedback', methods=['POST'])
 def feedback():
+    data = request.get_json()
+    msg = data.get('message', '')
+    type = data.get('type', '') # like / dislike
+    feedbacks.append({"type": type, "message": msg})
+    print(f"NEW FEEDBACK {type}: {msg[:100]}") # You will see this in Render Logs!
     return jsonify({"status": "ok"})
+
+@app.route('/admin/feedbacks')
+def view_feedbacks():
+    # Only you can see this: titech-ai.onrender.com/admin/feedbacks
+    return jsonify(feedbacks)
 
 @app.route('/clear', methods=['POST'])
 def clear():
