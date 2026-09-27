@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TITECH AI</title>
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-4TGEVES8FL"></script>
+<script>
+window.dataLayer=window.dataLayer||[];
+function gtag(){dataLayer.push(arguments);}
+gtag('js',new Date());
+gtag('config','G-4TGEVES8FL');
+</script>
 <style>
 body{font-family:Arial;background:#0f0f0f;color:white;margin:0;display:flex;flex-direction:column;height:100vh}
 .header{display:flex;align-items:center;padding:15px;background:#1a1a1a}
@@ -20,7 +28,7 @@ button{margin-left:8px;padding:12px 20px;border-radius:20px;border:none;backgrou
 <body>
 <div class="header">
 <img src="/static/logo.png" onerror="this.src='/logo.png'">
-<h3>TITECH AI ✨</h3>
+<h3>TITECH AI 🚀</h3>
 </div>
 <div id="chat"></div>
 <div class="input-area">
@@ -40,6 +48,7 @@ function addMsg(text,type,img=null){
 }
 async function send(){
  const input=document.getElementById('q');const q=input.value.trim();if(!q)return;
+ gtag('event','chat_message',{query:q});
  addMsg(q,'user');history.push({text:q,type:'user'});localStorage.setItem('titech_chat',JSON.stringify(history));input.value='';
  try{
   const res=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:q,session_id:sessionId})});
