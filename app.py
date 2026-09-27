@@ -127,7 +127,7 @@ def chat():
     if any(w in low for w in ["image","photo","picture"]):
         image_url = get_wiki(q) or get_unsplash(q)
 
-    if any(w in low for w in ["image","photo","picture"...
+        if any(w in low for w in ["image", "photo", "picture"]):
         image_url = get_wiki(q) or get_unsplash(q)
     try:
         if not GROQ_KEY:
