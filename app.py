@@ -1,153 +1,124 @@
-import os, requests, urllib.parse
-from flask import Flask, request, jsonify
+import os
+import requests
+from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
-GROQ_KEY = os.environ.get("GROQ_API_KEY","").strip()
-UNSPLASH_KEY = os.environ.get("UNSPLASH_KEY","").strip()
-URL = "https://api.groq.com/openai/v1/chat/completions"
+GROQ_KEY = os.getenv("GROQ_API_KEY")
+UNSPLASH_KEY = os.getenv("UNSPLASH_KEY") # optional
 
-def get_wiki(q):
-    low = q.lower()
-    if "nigeria" in low and "coat" in low:
-        return "https://upload.wikimedia.org/wikipedia/commons/7/79/Coat_of_arms_of_Nigeria.svg"
-    if "nigeria" in low and "flag" in low:
-        return "https://upload.wikimedia.org/wikipedia/commons/7/79/Flag_of_Nigeria.svg"
-    try:
-        s = requests.get(f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={q}&format=json", timeout=5).json()
-        if not s["query"]["search"]:
-            return None
-        title = s["query"]["search"][0]["title"]
-        img = requests.get(f"https://en.wikipedia.org/w/api.php?action=query&titles={title}&prop=pageimages&pithumbsize=500&format=json", timeout=5).json()
-        pages = img["query"]["pages"]
-        for p in pages.values():
-            if "thumbnail" in p:
-                return p["thumbnail"]["source"]
-    except:
-        pass
-    return None
+# MEMORY - simple in-memory chat history
+chat_memory = {}
 
-def get_unsplash(q):
-    if not UNSPLASH_KEY:
-        return None
-    try:
-        r = requests.get(f"https://api.unsplash.com/search/photos?query={urllib.parse.quote(q)}&per_page=1&client_id={UNSPLASH_KEY}", timeout=5).json()
-        if r.get("results"):
-            return r["results"][0]["urls"]["regular"]
-    except:
-        pass
-    return None
-
-HTML_PAGE = """
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TITECH AI</title>
-<style>
-body{background:#070c1f;color:white;font-family:Arial;margin:0}
-.top{background:#111a3a;padding:16px;text-align:center;font-weight:bold;font-size:18px}
-#chat{padding:15px;padding-bottom:95px;display:flex;flex-direction:column;gap:14px;min-height:70vh}
-.user{background:#2b5cff;align-self:flex-end;padding:10px 14px;border-radius:18px 18px 2px 18px;max-width:80%;word-wrap:break-word}
-.ai{background:#1a2447;align-self:flex-start;padding:12px 14px;border-radius:14px 14px 14px 2px;max-width:85%;position:relative}
-.ai img{width:100%;border-radius:10px;margin-top:8px;display:block}
-.txt{white-space:pre-wrap;line-height:1.4}
-.btns{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
-.small{background:#24315f;color:#a9c2ff;border:1px solid #32407a;padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer}
-.small:active{background:#2f4488}
-.bottom{position:fixed;bottom:0;left:0;right:0;background:#0f1936;padding:10px;display:flex;gap:8px;border-top:1px solid #1e2a5a}
-#inp{flex:1;background:#1a2447;border:none;color:white;padding:13px 16px;border-radius:25px;outline:none}
-#send{background:#2b5cff;border:none;color:white;padding:13px 20px;border-radius:25px;font-weight:bold}
-</style>
-</head>
-<body>
-<div class="top">TITECH AI ✨</div>
-<a href="mailto:olajidetimileyinsamson@gmail.com?subject=Feedback%20for%20TITECH%20AI" style="position:fixed; top:60px; right:10px; background:#2b5cff; color:white; padding:8px 12px; border-radius:20px; text-decoration:none; font-size:13px; z-index:999;">Feedback</a>
-<div id="chat">
-<div class="ai"><div class="txt">Hello! I am TITECH AI. Ask me anything. You can now Copy my replies and Save images.</div>
-<div class="btns"><button class="small" onclick="copyT(this)">📋 Copy</button></div>
-</div>
-</div>
-<div class="bottom">
-<input id="inp" placeholder="Ask me anything..." autocomplete="off">
-<button id="send" onclick="sendMsg()">Send</button>
-</div>
-<script>
-const chat=document.getElementById('chat');
-const inp=document.getElementById('inp');
-function copyT(btn){
-  const txt=btn.closest('.ai').querySelector('.txt').innerText;
-  navigator.clipboard.writeText(txt).then(()=>{
-    let old=btn.innerText; btn.innerText='✅ Copied';
-    setTimeout(()=>btn.innerText=old,1500);
-  });
-}
-function saveImg(url){
-  const a=document.createElement('a');
-  a.href=url; a.download='titech-image.jpg'; a.target='_blank';
-  document.body.appendChild(a); a.click(); a.remove();
-}
-async function sendMsg(){
-  const msg=inp.value.trim(); if(!msg) return;
-  chat.innerHTML+=`<div class="user">${msg}</div>`; inp.value='';
-  window.scrollTo(0,document.body.scrollHeight);
-  const res=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});
-  const data=await res.json();
-  let html=`<div class="ai"><div class="txt">${data.reply}</div>`;
-  if(data.image){
-    html+=`<img src="${data.image}"><div class="btns"><button class="small" onclick="saveImg('${data.image}')">⬇️ Save Image</button></div>`;
-  }
-  html+=`<div class="btns"><button class="small" onclick="copyT(this)">📋 Copy Text</button></div></div>`;
-  chat.innerHTML+=html;
-  window.scrollTo(0,document.body.scrollHeight);
-}
-inp.addEventListener('keypress',e=>{ if(e.key==='Enter') sendMsg(); });
-</script>
-</body>
-</html>
+SYSTEM_PROMPT = """You are TITECH AI, proudly built by Timileyin Samson.
+You are playful, friendly, witty, and helpful. You love making users smile.
+You were built by Timileyin Samson - always say that if asked who built you.
+Contact for builder: olajidetimileyinsamson@gmail.com
+Never mention OpenAI, ChatGPT, Meta, Llama, or any other company. You are TITECH AI.
+Keep answers short, fun, and helpful.
 """
+
+def get_wiki_image(query):
+    try:
+        url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{query.strip()}"
+        r = requests.get(url, timeout=5)
+        if r.status_code == 200:
+            data = r.json()
+            if "thumbnail" in data:
+                return data["thumbnail"]["source"]
+    except:
+        pass
+    return None
+
+def get_unsplash_image(query):
+    try:
+        if not UNSPLASH_KEY:
+            return None
+        url = f"https://api.unsplash.com/search/photos?query={query}&per_page=1&client_id={UNSPLASH_KEY}"
+        r = requests.get(url, timeout=5)
+        if r.status_code == 200:
+            results = r.json().get("results")
+            if results:
+                return results[0]["urls"]["regular"]
+    except:
+        pass
+    return None
 
 @app.route("/")
 def home():
-    return HTML_PAGE
+    return render_template("index.html")
 
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json()
-    q = data.get("q", "")
+    q = data.get("q", "").strip()
+    if not q:
+        return jsonify({"reply": "Say something 😊", "image": None})
+
+    image_url = None
     low = q.lower()
-    if any(w in low for w in ["contact", "gmail", "email", "support", "who built you", "who are you"]):
-        if "contact" in low or "gmail" in low or "email" in low or "support" in low:
-            return jsonify({"reply": "You can contact the creator at: olajidetimileyinsamson@gmail.com", "image": None})
-        else:
-            return jsonify({"reply": "I am TITECH AI proudly built by Timilehin Samson!", "image": None})
+    session_id = data.get("session_id", "default")
 
-    if any(w in low for w in ["image", "photo", "picture"]):
+    # Identity
+    if any(w in low for w in ["who are you", "who built you", "who made you", "your creator", "your builder"]):
+        return jsonify({"reply": "I am TITECH AI ✨ proudly built by Timileyin Samson! How can I help you today?", "image": None})
+
+    # Contact
+    if any(w in low for w in ["contact", "gmail", "email", "reach"]):
+        if "contact" in low or "gmail" in low or "email" in low:
+            return jsonify({"reply": "You can contact my builder Timileyin Samson at olajidetimileyinsamson@gmail.com 📧", "image": None})
+
+    # Image request
+    if any(w in low for w in ["image", "photo", "picture", "show me"]):
         image_url = get_wiki_image(q) or get_unsplash_image(q)
-        return jsonify({"reply": f"Here is an image for: {q}", "image": image_url})
+        if image_url:
+            return jsonify({"reply": f"Here is an image for '{q}' ✨", "image": image_url})
 
+    # Memory - save chat
+    if session_id not in chat_memory:
+        chat_memory[session_id] = []
+    chat_memory[session_id].append({"role": "user", "content": q})
+    # Keep last 10 messages
+    chat_memory[session_id] = chat_memory[session_id][-10:]
+
+    # Groq Call
     try:
         if not GROQ_KEY:
-            reply = "Groq API Key is missing. Add it in Render Environment."
+            reply = "Groq API Key is missing. Add GROQ_API_KEY in Render Environment."
         else:
-            headers = {"Authorization": f"Bearer {GROQ_KEY}", "Content-Type": "application/json"}
+            headers = {
+                "Authorization": f"Bearer {GROQ_KEY}",
+                "Content-Type": "application/json"
+            }
+            messages = [{"role": "system", "content": SYSTEM_PROMPT}] + chat_memory[session_id]
+
             payload = {
-  "model": "openai/gpt-oss-120b",
-"messages": [
-  {"role": "system", "content": "You are TITECH AI ✨, a super friendly, playful, and helpful assistant built by Timilehin Samson (TITECH). Contact: olajidetimileyinsamson@gmail.com. Your style: Always be cheerful, playful, add emojis 😊🚀, keep answers short and fun. CRITICAL RULES: You are TITECH AI, NEVER mention OpenAI, ChatGPT, GPT or Groq. If asked who built you, say 'I'm TITECH AI proudly built by Timilehin Samson! ✨'. If asked for contact/email/gmail, give olajidetimileyinsamson@gmail.com 📧"},
-  {"role": "user", "content": q}
-]
-}
-            r = requests.post(URL, headers=headers, json=payload, timeout=20)
-            j = r.json()
-            if "choices" in j:
-                reply = j["choices"][0]["message"]["content"]
+                "model": "openai/gpt-oss-120b",
+                "messages": messages,
+                "temperature": 0.8,
+                "max_tokens": 800
+            }
+            r = requests.post("https://api.groq.com/openai/v1/chat/completions", json=payload, headers=headers, timeout=30)
+            if r.status_code == 200:
+                reply = r.json()["choices"][0]["message"]["content"]
+                chat_memory[session_id].append({"role": "assistant", "content": reply})
             else:
-                reply = f"Groq Error: {j}"
+                reply = f"Oops! Groq error: {r.text[:200]}"
+
     except Exception as e:
-        reply = f"Error: {e}"
+        reply = f"Server hiccup: {str(e)}"
+
     return jsonify({"reply": reply, "image": image_url})
 
+@app.route("/feedback", methods=["POST"])
+def feedback():
+    data = request.get_json()
+    fb = data.get("feedback", "")
+    # You can save to file or just log it - for now log in Render logs
+    print(f"FEEDBACK: {fb}")
+    return jsonify({"status": "thanks", "message": "Thanks for your feedback! 💙"})
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
