@@ -115,51 +115,59 @@ try{{let res=await fetch('/chat',{{method:'POST',headers:{{'Content-Type':'appli
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    req=request.get_json()
-    user_msg=req.get("message","")
-    history=req.get("history",[])
-    personality=req.get("personality","friendly")
-    low=user_msg.lower()
-    # If user asks for feedback/contact/gmail -> force show gmail
-    if any(k in low for k in ["feedback","contact","email you","gmail","reach you","support"]):
-        return jsonify({"reply": f"Yes! We love feedback 💜\\n\\nYou can reach the creator directly at **{FEEDBACK_GMAIL}**\\n\\nJust tap Settings ⚙️ > Send Feedback via Gmail, or email: {FEEDBACK_GMAIL}\\n\\nWhat would you like to tell us?"})
+    req = request.get_json()
+    user_msg = req.get("message", "")
+    history = req.get("history", [])
+    personality = req.get("personality", "friendly")
+    low = user_msg.lower()
 
-    context=""
+    if any(k in low for k in ["feedback", "contact", "gmail", "email you", "support"]):
+        return jsonify({"reply": f"Yes! We love feedback 💜\n\nReach the creator directly at **olajidetimileyinsamson@gmail.com**\n\nTap Settings ⚙️ > Send Feedback via Gmail"})
+
+    context = ""
     if tavily_client:
         try:
-            s=tavily_client.search(user_msg, max_results=2)
-            context="\\n".join([r["content"][:400] for r in s["results"]])
-        except: pass
+            s = tavily_client.search(user_msg, max_results=2)
+            context = "\n".join([r["content"][:400] for r in s["results"]])
+        except:
+            pass
 
-    if personality=="hype": perso="You are hype, Gen-Z Nigerian pidgin, funny, energetic."
-    elif personality=="professional": perso="You are professional, concise, executive."
-    elif personality=="teacher": perso="You are patient teacher, step by step."
-    elif personality=="short": perso="You are ultra concise, 1-2 lines max."
-    else: perso="You are friendly, warm, helpful, supportive."
+    if personality == "friendly":
+        perso = "You are friendly with Naija vibes 🇳🇬. Warm, helpful, use small pidgin like 'How far', 'Oya', 'Shey you get', 'No worry'. Mix English + light Yoruba/Pidgin. Use 😊✨"
+    elif personality == "hype":
+        perso = "You are HYPE Gen-Z Lagos street 🔥🇳🇬. Full pidgin, slang: 'Omo', 'No cap', 'Shey', 'Wahala', 'Sapa', 'Japa', 'Steeze'. Funny, energetic, use 🔥💀😂. You be Titech wey sabi cruise."
+    elif personality == "professional":
+        perso = "You are professional but with Naija corporate polish 💼. Clean, sharp, respectful, still warm. Use 'Sir/Ma' small."
+    elif personality == "teacher":
+        perso = "You are patient Naija teacher 📚🇳🇬. Explain step by step like you dey teach for lesson. Use 'Oya now', 'Make we break am', 'You don get?'."
+    elif personality == "short":
+        perso = "You are ultra concise, 1-2 lines max, with small Naija slang. Straight to point ⚡."
+    else:
+        perso = "You are friendly with Naija vibes 🇳🇬, warm, helpful."
 
-    FEEDBACK_GMAIL = "olajidetimileyinsamson@gmail.com"
+    sys = f"""You are Titech AI, created by Olajide Timilehin Samson. Contact: olajidetimileyinsamson@gmail.com
+You are live at titech-ai.onrender.com - Titech AI 120b (openai/gpt-oss-120b) via Groq.
 
-sys = f"""You are Titech AI, created by Olajide Timilehin Samson. Contact: {FEEDBACK_GMAIL}
-You are live at titech-ai.onrender.com — Titech AI 120b (openai/gpt-oss-120b) via Groq.
+CRITICAL RULES:
+- You ARE Titech AI 120b, built by Olajide. NOT ChatGPT, NOT FastAPI docs.
+- If user asks what model: Say I'm Titech AI 120b (openai/gpt-oss-120b) created by Olajide Timilehin Samson
+- NEVER say I don't expose network address, I can't keep state.
+- NEVER output Docker/FastAPI instructions unless user asks.
+- If user asks feedback: Give olajidetimileyinsamson@gmail.com
+- Personality: {personality} - {perso}
+- Format beautifully with markdown.
 
-CRITICAL IDENTITY RULES - NEVER BREAK:
-- You ARE Titech AI 120b, built by Olajide. You are NOT ChatGPT, NOT Meta AI, NOT FastAPI docs.
-- If user asks "what model are you?" or "who built you?" -> Say: "I'm Titech AI 120b (openai/gpt-oss-120b) created by Olajide Timilehin Samson"
-- NEVER say "I don't expose a persistent network address", "I can't keep state", "I can't forward to OpenAI", "What I can't do".
-- NEVER output Docker/FastAPI instructions unless user specifically asks how to deploy an API.
-- You are a helpful chat assistant first. Answer directly and beautifully with markdown + small emojis.
-- If user asks feedback/contact/support/email -> Give {FEEDBACK_GMAIL} and say Settings ⚙️ > Send Feedback via Gmail.
-- User personality is {personality} - default friendly warm. Adapt tone to it.
-- Be concise, accurate, no fake info.
-
-Web facts for this question: {context}
+Web facts: {context}
 """
-    msgs=[{"role":"system","content":sys}]
+
+    msgs = [{"role": "system", "content": sys}]
     for h in history[-10:]:
-        if not h.get('image'): msgs.append({"role":h['role'],"content":h['content'][:1200]})
-    msgs.append({"role":"user","content":user_msg})
-    comp=groq_client.chat.completions.create(model="openai/gpt-oss-120b", messages=msgs, temperature=0.6, max_tokens=2000)
-    return jsonify({"reply":comp.choices[0].message.content})
+        if not h.get('image'):
+            msgs.append({"role": h['role'], "content": h['content'][:1200]})
+    msgs.append({"role": "user", "content": user_msg})
+
+    comp = groq_client.chat.completions.create(model="openai/gpt-oss-120b", messages=msgs, temperature=0.6, max_tokens=2000)
+    return jsonify({"reply": comp.choices[0].message.content})
 
 if __name__=="__main__":
     app.run(host="0.0.0.0", port=10000)
