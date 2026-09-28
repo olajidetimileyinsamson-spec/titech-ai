@@ -127,8 +127,8 @@ def chat():
     context = ""
     if tavily_client:
         try:
-            s = tavily_client.search(user_msg, max_results=2)
-    context = "\n".join([r["content"][:400] for r in s["results"]])
+            s = tavily_client.search(user_msg, max_results=3)
+            context = "\n".join([r["content"][:400] for r in s.get("results",[])])
         except:
             pass
 
