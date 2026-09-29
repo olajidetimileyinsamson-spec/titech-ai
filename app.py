@@ -34,7 +34,9 @@ def home():
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
 *{{box-sizing:border-box;font-family:system-ui}}body{{margin:0;background:#101014;color:#fff;height:100vh;display:flex;flex-direction:column;overflow:hidden}}
-#welcome{{position:fixed;inset:0;z-index:100;background:#0e0e12;display:flex;flex-direction:column;align-items:center;justify-content:center}}
+#welcome{position:fixed;inset:0;z-index:9999;background:#0e0e10;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.wel-pattern{position:absolute;inset:0;background:radial-gradient(circle at center,#1a1a1e 0%,#0e0e10 100%)}
+.wel-center{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center}
 #welcome.hide{{display:none}}.wel-pattern{{position:absolute;inset:0;opacity:0.08;background-image:radial-gradient(circle at 1px 1px,#fff 1px,transparent 0);background-size:30px 30px}}
 .wel-center{{display:flex;flex-direction:column;align-items:center;gap:18px;z-index:2;margin-top:-40px;width:90%;max-width:360px}}
 .wel-logo{{width:90px;height:90px;border-radius:22px;background:linear-gradient(135deg,#a855f7,#5b21b6);display:grid;place-items:center;box-shadow:0 10px 40px rgba(168,85,247,0.4)}}
@@ -156,7 +158,7 @@ def chat():
         perso = "You are friendly with Naija vibes 🇳🇬, warm, helpful."
 
     sys = f"""You are Titech AI, created by Olajide Timilehin Samson. Contact: olajidetimileyinsamson@gmail.com
-You are live at titech-ai.onrender.com - Titech AI 120b (titech-ai-120b) via Groq.
+You are live at titech-ai.onrender.com - Titech AI 🚀 (titech-ai-120b) via Groq.
 
 CRITICAL RULES:
 - You ARE Titech AI 120b, built by Olajide. NOT ChatGPT, NOT FastAPI docs.
