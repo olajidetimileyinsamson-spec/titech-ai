@@ -29,7 +29,7 @@ def debug():
 def home():
     s_url=supabase_url or ""; s_key=supabase_key or ""
     return f"""
-<!DOCTYPE html><html><head><title>Titech AI</title><meta name="viewport" content="width=device-width,initial-scale=1">
+<!DOCTYPE html><html><head><title>Titech AI 🚀</title><meta name="viewport" content="width=device-width,initial-scale=1"
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
@@ -54,11 +54,21 @@ def home():
 .perso-btn{{padding:16px 18px;border-radius:16px;border:1px solid #27272a;background:#18181b;color:#fff;font-weight:600;text-align:left;cursor:pointer;font-size:14px;width:100%}}.perso-btn:hover{{background:#27272a;border-color:#a855f7}}
 </style></head><body>
 
-<div id="welcome"><div class="wel-pattern"></div><div class="wel-center">
-<div class="wel-logo"><img src="/logo.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712109.png'"></div>
-<div class="wel-greet">Hi, Titech</div><div class="wel-sub" id="timeGreet">Good morning</div>
-<div class="login-box"><input id="email" placeholder="Email"><input id="pass" type="password" placeholder="Password"><button onclick="doLogin()">Continue</button><small id="loginStatus" style="text-align:center;color:#9ca3af"></small><small onclick="enterChat()" style="text-align:center;color:#555;cursor:pointer">Skip → offline only</small></div>
-</div></div>
+<div id=welcome class=wel-pattern>
+  <div class=wel-center>
+    <div id=welcomeBox class=wel-box>
+      <div class=wel-logo><img src="/logo.png"></div>
+      <div class=wel-greet id=timeGreet>Good Morning</div>
+      <div class=wel-sub>titech-ai 120b</div>
+      <div class=login-box>
+        <input id=username placeholder="Username (e.g Tosin)" maxlength=12>
+        <input id=email placeholder="Email">
+        <input id=pass type=password placeholder="Password">
+        <button onclick=enterChat()>Continue</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div id="personalityPopup"><div class="wel-logo" style="margin-bottom:14px"><img src="/logo.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712109.png'"></div>
 <h2 style="font-size:26px;font-weight:800;margin:0">Choose your vibe ✨</h2><p style="color:#9ca3af;font-size:14px;margin:6px 0 0 0">How you want Titech AI to talk?</p>
@@ -82,7 +92,7 @@ def home():
 <div class="set-row" style="flex-direction:column;align-items:flex-start;gap:8px"><span style="font-weight:700">📩 Feedback / Contact</span><span style="color:#a5b4fc;font-size:13px;word-break:break-all">{FEEDBACK_GMAIL}</span>
 <button class="set-btn" style="background:#fff;color:#000;width:100%" onclick="window.open('mailto:{FEEDBACK_GMAIL}?subject=Titech AI Feedback','_blank')">✉️ Send Feedback via Gmail</button>
 </div>
-<div class="set-row"><span>Model</span><span>openai/gpt-oss-120b</span></div>
+<div class="set-row"><span>Model</span><span>titech-ai-120b</span></div>
 <div class="set-row"><span>Personality</span><span id="setPerso">friendly</span></div>
 <div class="set-row"><span>Greeting</span><span id="setGreet">-</span></div>
 <button class="set-btn" onclick="changePersonality()">Change Personality</button>
@@ -146,11 +156,11 @@ def chat():
         perso = "You are friendly with Naija vibes 🇳🇬, warm, helpful."
 
     sys = f"""You are Titech AI, created by Olajide Timilehin Samson. Contact: olajidetimileyinsamson@gmail.com
-You are live at titech-ai.onrender.com - Titech AI 120b (openai/gpt-oss-120b) via Groq.
+You are live at titech-ai.onrender.com - Titech AI 120b (titech-ai-120b) via Groq.
 
 CRITICAL RULES:
 - You ARE Titech AI 120b, built by Olajide. NOT ChatGPT, NOT FastAPI docs.
-- If user asks what model: Say I'm Titech AI 120b (openai/gpt-oss-120b) created by Olajide Timilehin Samson
+- If user asks what model: Say I'm Titech AI 🚀(titech-ai-120b) created by Olajide Timilehin Samson
 - NEVER say I don't expose network address, I can't keep state.
 - NEVER output Docker/FastAPI instructions unless user asks.
 - If user asks feedback: Give olajidetimileyinsamson@gmail.com
