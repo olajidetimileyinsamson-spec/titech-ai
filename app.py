@@ -28,7 +28,7 @@ def debug():
 @app.route("/")
 def home():
     s_url=supabase_url or ""; s_key=supabase_key or ""
-    return f"""
+    return """
 <!DOCTYPE html><html><head><title>Titech AI 🚀</title><meta name="viewport" content="width=device-width,initial-scale=1"
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
