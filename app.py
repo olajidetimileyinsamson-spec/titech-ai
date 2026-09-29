@@ -40,7 +40,11 @@ def home():
 #welcome.hide{{display:none}}.wel-pattern{{position:absolute;inset:0;opacity:0.08;background-image:radial-gradient(circle at 1px 1px,#fff 1px,transparent 0);background-size:30px 30px}}
 .wel-center{{display:flex;flex-direction:column;align-items:center;gap:18px;z-index:2;margin-top:-40px;width:90%;max-width:360px}}
 .wel-logo{{width:90px;height:90px;border-radius:22px;background:linear-gradient(135deg,#a855f7,#5b21b6);display:grid;place-items:center;box-shadow:0 10px 40px rgba(168,85,247,0.4)}}
-.wel-logo img{{width:70px;height:70px;border-radius:16px}}.wel-greet{{font-size:32px;font-weight:800}}.wel-sub{{color:#9ca3af;font-size:14px;margin-top:-10px}}
+.wel-logo{width:100px;height:100px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center}
+.wel-logo img{width:90px !important;height:90px !important;max-width:90px;max-height:90px;object-fit:contain;border-radius:18px;display:block}
+.wel-center{width:100%;max-width:400px;margin:0 auto;padding:20px;box-sizing:border-box}
+.login-box{width:100% !important;max-width:320px;margin:15px auto 0}
+#welcome{overflow-y:auto;padding:20px;box-sizing:border-box}
 .login-box{{display:flex;flex-direction:column;gap:10px;width:100%;margin-top:15px}}.login-box input{{padding:13px 16px;border-radius:14px;border:1px solid #27272a;background:#18181b;color:#fff;outline:none}}.login-box button{{padding:13px;border-radius:14px;border:none;background:#fff;color:#000;font-weight:700;cursor:pointer}}
 #topbar{{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#18181b;border-bottom:1px solid #27272a}}
 #chat{{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;background:#101014}}
