@@ -2,168 +2,58 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title> Titech AI 🚀</title>
-<link rel="icon" href="/logo.png">
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-4TGEVES8FL"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-4TGEVES8FL');
-</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Titech AI 🚀</title>
+<link rel="icon" href="logo.png">
 <style>
-* { box-sizing:border-box; }
-html, body { max-width:100%; overflow-x:hidden !important; }
-body { background:#0b1120; margin:0; font-family:system-ui; display:flex; flex-direction:column; height:100vh; }
-.header { display:flex; align-items:center; padding:12px; border-bottom:1px solid #222; }
-.header img { width:36px; height:36px; border-radius:50%; }
-.header b { font-size:17px; }
-#chat{ flex:1; padding:12px 12px 90px 12px; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column; gap:10px; }
-.user { align-self:flex-end; background:#2a5bd7; padding:10px 14px; border-radius:18px 18px 4px 18px; max-width:85%; word-break:break-word; }
-.ai-wrap { align-self:flex-start; max-width:85%; background:#162040; border-radius:18px 18px 18px 4px; overflow:hidden; border:1px solid #222; }
-.ai { color:#dbe4ff; padding:12px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
-.ai table { width:650px; border-collapse:collapse; display:block; }
-.ai th, .ai td { padding:10px; border:1px solid #2a2a2a; font-size:13px; text-align:left; white-space:nowrap; }
-.ai th { color:#00f2ff; background:#1e2a4a; }
-.ai-wrap::before{ content:"<> Table • Swipe →"; display:block; padding:6px 12px; font-size:10px; color:#00f2ff; background:#111; border-bottom:1px solid #222; }
-.ai img { max-width:100% !important; border-radius:10px; }
-.actions { display:flex; gap:8px; margin-left:4px; }
-.action-btn { background:#1e2a4a; border:1px solid #2a2a2a; color:#fff; padding:6px 10px; border-radius:8px; font-size:12px; }
-.input-area { position:fixed; bottom:0; left:0; right:0; display:flex; gap:8px; padding:10px; background:#0b1120; border-top:1px solid #222; }
-.input-area input { flex:1; background:#162040; color:#fff; border:1px solid #222; border-radius:20px; padding:12px 14px; }
-.input-area input::placeholder { color:#6b7daa; }
-.input-area button { background:#2a5bd7; color:#fff; border:0; border-radius:20px; padding:10px 16px; }
-.input-area button:active { transform:scale(0.96); }
-.ai-wrap::before{
-  content:"<> Table  ↔️ Swipe";
-  display:flex;
-  justify-content:space-between;
-  padding:6px 12px;
-  font-size:11px;
-  color:#00f2ff;
-  border-bottom:1px solid #222;
-  background:#151515;
+* { box-sizing:border-box; margin:0; padding:0; }
+html, body { width:100%; height:100%; overflow-x:hidden; background:#060a14; font-family:-apple-system,BlinkMacSystemFont,sans-serif; }
+body { display:flex; flex-direction:column; position:relative; }
+body::before {
+  content:""; position:fixed; inset:0; z-index:-2;
+  background:
+    radial-gradient(600px at 20% 10%, rgba(0,242,255,0.15), transparent 60%),
+    radial-gradient(800px at 80% 80%, rgba(90,50,255,0.18), transparent 60%),
+    linear-gradient(rgba(0,242,255,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,242,255,0.05) 1px, transparent 1px);
+  background-size: auto, auto, 40px 40px, 40px 40px;
 }
-.ai{
-  min-width:650px;
-  white-space:normal;
-  padding:12px;
+body::after {
+  content:""; position:fixed; inset:0; z-index:-1; opacity:0.4;
+  background-image: radial-gradient(rgba(0,242,255,0.8) 1px, transparent 1px);
+  background-size: 60px 60px;
 }
-.ai table{ width:100%; border-collapse:collapse; }
-.ai th,.ai td{ padding:12px; border-bottom:1px solid #222; text-align:left; font-size:13px; vertical-align:top; }
-.ai th{ color:#00f2ff; }
-.ai a{ word-break:break-all; } 
+.header { display:flex; justify-content:space-between; padding:14px 16px; background:rgba(10,15,30,0.7); backdrop-filter:blur(12px); border-bottom:1px solid rgba(0,242,255,0.15); position:sticky; top:0; z-index:10; }
+.header b { color:#fff; }.header b span{ color:#00f2ff; }
+.hype { font-size:11px; color:#00f2ff; background:rgba(0,242,255,0.1); border:1px solid rgba(0,242,255,0.2); padding:4px 10px; border-radius:20px; }
+#chat { flex:1; overflow-y:auto; overflow-x:hidden; padding:18px 12px 110px 12px; display:flex; flex-direction:column; gap:16px; }
+.ai-wrap { align-self:flex-start; max-width:88%; position:relative; }
+.ai-wrap::after { content:"✨"; position:absolute; top:-6px; right:-6px; }
+.ai { background: linear-gradient(135deg, #3a5bff 0%, #7a3dff 100%); color:#fff; padding:14px 16px; border-radius:18px; border-bottom-left-radius:6px; box-shadow: 0 0 20px rgba(90,70,255,0.35); font-size:14.5px; line-height:1.5; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.ai table { border-collapse:collapse; min-width:580px; width:max-content; background:rgba(0,0,0,0.25); border-radius:10px; margin-top:8px; }
+.ai th,.ai td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.12); font-size:13px; }
+.ai th { background:rgba(0,0,0,0.35); color:#00f2ff; }
+.user-wrap { align-self:flex-end; max-width:82%; }
+.user { background: rgba(20,30,60,0.45); backdrop-filter:blur(10px); border:1px solid rgba(0,242,255,0.35); box-shadow: 0 0 15px rgba(0,242,255,0.25); color:#e6f7ff; padding:12px 16px; border-radius:22px; border-bottom-right-radius:6px; }
+.bottom-wrap { position:fixed; bottom:0; left:0; right:0; padding:12px; background:linear-gradient(to top, #060a14 80%, transparent); z-index:20; }
+.input-area { display:flex; gap:10px; align-items:center; background:rgba(20,30,50,0.65); backdrop-filter:blur(16px); border:1px solid rgba(0,242,255,0.18); border-radius:28px; padding:6px 6px 6px 18px; }
+.input-area input { flex:1; background:transparent; border:none; color:#fff; outline:none; font-size:15px; }
+.input-area button { width:44px; height:44px; border-radius:50%; border:none; background: radial-gradient(circle at 30% 30%, #00f2ff, #3a5bff); box-shadow: 0 0 20px rgba(0,242,255,0.6); color:#fff; font-size:20px; }
+.trust { text-align:center; font-size:10px; color:#5a708a; margin-top:8px; }
 </style>
 </head>
 <body>
-
-<div class="header">
-  <img src="/logo.png">
-  <b>Titech AI 🚀</b>
+<div class="header"><b>Titech AI <span>🚀</span></b><span class="hype">FREE • hype</span></div>
+<div id="chat"></div>
+<div class="bottom-wrap">
+<div class="input-area"><input id="msg" placeholder="Ask Titech AI 🚀..." onkeypress="if(event.key==='Enter')send()"><button onclick="send()">↑</button></div>
+<div class="trust">Free tier · Privacy on · No training on your chats</div>
 </div>
-
-<div id="chat">
-  <div class="ai-wrap">
-    <div class="ai">Hey there! I'm Titech AI 🚀✨<br>Your playful AI buddy — ask me anything, create images, or just gist! 😎</div>
-  </div>
-</div>
-
-<div class="input-area">
-  <input id="msg" placeholder="Ask me anything... ✨" onkeypress="if(event.key==='Enter')send()">
-  <button onclick="send()">Send 🚀</button>
-</div>
-
 <script>
-let chat = document.getElementById('chat');
-  // Load saved chat
-let saved = localStorage.getItem('titech_chat');
-if(saved && saved.includes('<div')){
-  chat.innerHTML = saved;
-} else {
-  localStorage.removeItem('titech_chat');
-}
-
-function addMsg(text, cls){
-  if(cls==='user'){
-    let div=document.createElement('div'); div.className='user'; div.innerText=text;
-    chat.appendChild(div);
-  } else {
-    let wrap=document.createElement('div'); wrap.className='ai-wrap';
-    let div=document.createElement('div'); div.className='ai';
-
-    // Check if image url
-    let isImage = text.match(/https?:\/\/.*\.(jpeg|jpg|gif|png|webp)/i) || text.startsWith('data:image');
-    if(isImage){
-        div.innerHTML = `<img src="${text}" alt="AI Image"><br>${text}`;
-    } else {
-        div.innerHTML = text.replace(/\n/g,'<br>');
-    }
-
-    let actions=document.createElement('div'); actions.className='actions';
-    actions.innerHTML = `
-      <button class="action-btn" onclick="copyText(this)">📋 Copy</button>
-      ${isImage? `<button class="action-btn" onclick="saveImage('${text}')">💾 Save</button>` : `<button class="action-btn" onclick="saveText(this)">💾 Save</button>`}
-      <button class="action-btn" onclick="feedback(this,'up')">👍</button>
-      <button class="action-btn" onclick="feedback(this,'down')">👎</button>
-    `;
-    wrap.appendChild(div); wrap.appendChild(actions); chat.appendChild(wrap);
-  }
-  chat.scrollTop = chat.scrollHeight;
-  localStorage.setItem('titech_chat', chat.innerHTML);
-}
-
-async function send(){
-  let input=document.getElementById('msg'); let text=input.value.trim(); if(!text) return;
-  addMsg(text,'user'); input.value='';
-
-  // typing effect ✨
-  let wrap=document.createElement('div'); wrap.className='ai-wrap'; wrap.id='typing';
-  wrap.innerHTML=`<div class="ai">Thinking... 🤔💭</div>`; chat.appendChild(wrap); chat.scrollTop=chat.scrollHeight;
-
-  try{
-    // CHECK IF NA IMAGE
-    if(text.toLowerCase().includes('generate') || text.toLowerCase().includes('create image') || text.toLowerCase().includes('draw') || text.toLowerCase().includes('image')){
-      wrap.innerHTML=`<div class="ai">Generating image... 🎨✨</div>`;
-      let res=await fetch('/generate-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:text})});
-      let data=await res.json();
-      wrap.remove();
-      if(data.image_url){
-        addMsg(`<img src="${data.image_url}" style="width:100%;max-width:500px;border-radius:12px;"><br><small>${text}</small>`, 'ai');
-      } else {
-        addMsg('Image failed, try again bro', 'ai');
-      }
-    } else {
-      // NORMAL CHAT
-      let res=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})});
-      let data=await res.json();
-      wrap.remove();
-      addMsg(data.reply || data.response || 'No reply', 'ai');
-    }
-  } catch(e){
-    let t=document.getElementById('typing'); if(t) t.remove();
-    addMsg('Error: '+e.message, 'ai');
-  }
-}
-
-function copyText(btn){
-  let txt = btn.closest('.ai-wrap').querySelector('.ai').innerText;
-  navigator.clipboard.writeText(txt);
-  btn.innerText='✅ Copied!'; setTimeout(()=>btn.innerText='📋 Copy',1500);
-}
-function saveText(btn){
-  let txt = btn.closest('.ai-wrap').querySelector('.ai').innerText;
-  let blob = new Blob([txt], {type:'text/plain'});
-  let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='titech-ai-response.txt'; a.click();
-}
-function saveImage(url){
-  let a=document.createElement('a'); a.href=url; a.download='titech-ai-image.png'; a.target='_blank'; a.click();
-}
-function feedback(btn, type){
-  btn.innerText = type==='up'? '👍 Thanks!' : '👎 Noted!';
-  fetch('/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:type})}).catch(()=>{});
-  setTimeout(()=>btn.innerText= type==='up'? '👍' : '👎',1500);
-}
+let chat=document.getElementById('chat'), input=document.getElementById('msg');
+function addMessage(text,cls){ let w=document.createElement('div'); w.className=cls+'-wrap'; let d=document.createElement('div'); d.className=cls; d.innerHTML=text; w.appendChild(d); chat.appendChild(w); chat.scrollTop=chat.scrollHeight; localStorage.setItem('titech-chat', chat.innerHTML); }
+async function send(){ let t=input.value.trim(); if(!t) return; addMessage(t,'user'); input.value=''; let ty=document.createElement('div'); ty.className='ai-wrap'; ty.innerHTML='<div class="ai">Thinking...</div>'; chat.appendChild(ty); try{ let r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t})}); let d=await r.json(); ty.remove(); addMessage((d.response||'No reply').replace(/\n/g,'<br>'),'ai'); }catch{ ty.remove(); addMessage('Network glitch','ai'); } }
+window.onload=()=>{ let s=localStorage.getItem('titech-chat'); if(s) chat.innerHTML=s; }
 </script>
 </body>
 </html>
