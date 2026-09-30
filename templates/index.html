@@ -36,14 +36,30 @@ body{width:100%; max-width:100vw !important; overflow-x:hidden !important; backg
 let chat=document.getElementById('chat'),input=document.getElementById('msg');
 // FORCE CLEAR OLD 3X WIDE DATA
 localStorage.removeItem('titech-chat'); localStorage.removeItem('titech-chat-v2');
+function mdTableToHtml(txt){
+ let L=txt.split('\n'),o='',r=[],inT=false;
+ L.forEach(l=>{
+  if(l.trim().startsWith('|')){
+   let c=l.split('|').filter(x=>x.trim()!='').map(x=>x.trim());
+   if(c.every(x=>/^[-:]+$/.test(x)))return;
+   r.push(c);inT=true;
+  }else{
+   if(inT&&r.length){
+    o+='<div class="table-scroll"><table><tr>';r[0].forEach(x=>o+=`<th>${x}</th>`);o+='</tr>';
+    for(let i=1;i<r.length;i++){o+='<tr>';r[i].forEach(x=>o+=`<td>${x}</td>`);o+='</tr>';}
+    o+='</table></div>';r=[];inT=false;
+   }
+   o+=l+'<br>';
+  }
+ });
+ if(r.length){o+='<div class="table-scroll"><table><tr>';r[0].forEach(x=>o+=`<th>${x}</th>`);o+='</tr>';for(let i=1;i<r.length;i++){o+='<tr>';r[i].forEach(x=>o+=`<td>${x}</td>`);o+='</tr>';}o+='</table></div>';}
+ return o;
+}
 function addMessage(t,c){
-  let w=document.createElement('div');w.className=c+'-wrap';
-  let d=document.createElement('div');d.className=c;d.innerHTML=t;
-  d.querySelectorAll('table').forEach(table=>{
-    let s=document.createElement('div');s.className='table-scroll';
-    table.parentNode.insertBefore(s,table); s.appendChild(table);
-  });
-  w.appendChild(d);chat.appendChild(w);chat.scrollTop=chat.scrollHeight;
+ let w=document.createElement('div');w.className=c+'-wrap';
+ let d=document.createElement('div');d.className=c;
+ d.innerHTML=c==='ai'?mdTableToHtml(t):t.replace(/\n/g,'<br>');
+ w.appendChild(d);chat.appendChild(w);chat.scrollTop=chat.scrollHeight;
 }
 async function send(){
   let t=input.value.trim();if(!t)return;addMessage(t,'user');input.value='';
