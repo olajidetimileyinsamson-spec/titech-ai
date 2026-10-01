@@ -40,14 +40,35 @@ html,body{width:100%;max-width:100vw;overflow-x:hidden!important;background:#050
 <div class="wrap">
 <div class="header">
 <div class="h-left">
-<img src="/static/logo.png" onerror="this.src='logo.png'; this.onerror=null" class="logo" alt="logo">
-<div class="h-title">Titech AI 🚀</div>
+  <img src="/logo.png" onerror="this.src='/static/logo.png'; this.onerror=null" class="logo" alt="logo">
+  <div>
+    <div class="h-title">Titech AI 🚀</div>
+    <div style="font-size:10px; margin-top:2px; background:#111; color:#00ffd0; padding:2px 6px; border-radius:8px; display:inline-block;">Free tier 💎</div>
+  </div>
 </div>
 <div class="h-right">
 <span class="pill friendly">friendly</span>
-<button class="icon-btn" onclick="alert('Personal preferences: tone = friendly, you fit change am for app.py')">⚙️</button>
+<button class="icon-btn" onclick="openPrefs()">⚙️</button>
 </div>
 </div>
+<!-- 2. Personal Prefs Modal - no design scatter -->
+<div id="prefsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:999; justify-content:center; align-items:center;">
+  <div style="background:#1a1a1a; padding:20px; border-radius:12px; width:90%; max-width:320px; color:#fff; font-family:inherit;">
+    <h4 style="margin:0 0 10px;">Personal Preferences</h4>
+    <label style="font-size:12px;">Tone (5 personalities):</label>
+    <select id="toneSelect" style="width:100%; padding:8px; margin:8px 0; border-radius:8px; background:#000; color:#fff; border:1px solid #333;">
+      <option value="friendly">friendly</option>
+      <option value="hype">hype</option>
+      <option value="professional">professional</option>
+      <option value="short">short</option>
+      <option value="teacher">teacher</option>
+    </select>
+    <p style="font-size:12px; margin-top:12px;">Username: <b id="showUsername"></b></p>
+    <p style="font-size:12px;">Email: <b id="showEmail"></b></p>
+    <p style="font-size:12px; margin-top:8px;">Feedback: <a href="mailto:olajidetimileyinsamson@gmail.com" style="color:#00ffd0; text-decoration:none;">olajidetimileyinsamson@gmail.com</a></p>
+    <button onclick="savePrefs()" style="margin-top:12px; width:100%; padding:10px; border-radius:8px; background:#00ffd0; color:#000; font-weight:700; border:0;">Save</button>
+    <button onclick="document.getElementById('prefsModal').style.display='none'" style="margin-top:8px; width:100%; padding:8px; border-radius:8px; background:transparent; color:#fff; border:1px solid #333;">Close</button>
+  </div>
 <div id="chat"></div>
 <div class="bottom">
 <div class="input-bar"><button class="plus">+</button><input id="msg" placeholder="Ask Titech AI 🚀..." onkeypress="if(event.key==='Enter')send()"><button class="send" onclick="send()">↑</button></div>
@@ -67,6 +88,57 @@ function add(t,c){
 }
 async function send(){let t=input.value.trim();if(!t)return;add(t,'user');input.value='';let ty=document.createElement('div');ty.className='ai-wrap';ty.innerHTML='<div class=\"ai\">Thinking...</div>';chat.appendChild(ty);chat.scrollTop=chat.scrollHeight;try{let r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t})});let d=await r.json();ty.remove();add(d.response||d.reply||'No reply','ai');}catch{ty.remove();add('Network glitch','ai');}}
 add("Hey! I'm Titech AI 🚀 — ready to help. What you wan work on today?","ai");
+</script>
+ <div id="greetPopup" style="position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#111; color:#fff; padding:12px 20px; border-radius:12px; z-index:9999; display:none; font-weight:600; border:1px solid #333; box-shadow:0 4px 20px rgba(0,0,0,.5);"></div>
+
+<script>
+// 3. NEVER FORGET USERNAME + EMAIL + LAGOS GREETING
+let username = localStorage.getItem("titech_username");
+if(!username){
+  username = prompt("Wetin be your name? Make Titech AI remember you") || "Boss";
+  localStorage.setItem("titech_username", username);
+}
+let userEmail = localStorage.getItem("titech_email");
+if(!userEmail){
+  userEmail = prompt("Your email (for settings)?") || "";
+  if(userEmail) localStorage.setItem("titech_email", userEmail);
+}
+
+function lagosGreeting(){
+  const hour = parseInt(new Date().toLocaleString("en-US",{timeZone:"Africa/Lagos", hour:"2-digit", hour12:false}));
+  if(hour < 12) return "Good morning";
+  if(hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+window.addEventListener("load", ()=>{
+  const pop = document.getElementById("greetPopup");
+  if(pop){
+    pop.textContent = `${lagosGreeting()}, ${username} 👋`;
+    pop.style.display = "block";
+    setTimeout(()=> pop.style.display="none", 3000);
+  }
+  const uEl = document.getElementById("showUsername");
+  const eEl = document.getElementById("showEmail");
+  if(uEl) uEl.textContent = username;
+  if(eEl) eEl.textContent = userEmail || "Not set";
+  const savedTone = localStorage.getItem("titech_tone") || "friendly";
+  const sel = document.getElementById("toneSelect");
+  if(sel) sel.value = savedTone;
+  const pill = document.querySelector(".pill");
+  if(pill) pill.textContent = savedTone;
+});
+
+function openPrefs(){ 
+  document.getElementById("prefsModal").style.display="flex";
+}
+function savePrefs(){
+  const tone = document.getElementById("toneSelect").value;
+  localStorage.setItem("titech_tone", tone);
+  const pill = document.querySelector(".pill");
+  if(pill) pill.textContent = tone;
+  document.getElementById("prefsModal").style.display="none";
+}
 </script>
 </body>
 </html>
