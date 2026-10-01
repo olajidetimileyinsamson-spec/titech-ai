@@ -4,6 +4,7 @@ from flask_cors import CORS
 from groq import Groq
 from supabase import create_client
 from tavily import TavilyClient
+import urllib.parse
 
 app = Flask(__name__, template_folder="templates")
 CORS(app)
@@ -36,6 +37,18 @@ def chat():
     username = data.get("username", "User")
     user_email = data.get("user_email", "")
 
+    # --- FLUX IMAGE ---
+    lower_msg = user_message.lower()
+    if "generate image" in lower_msg or "create image" in lower_msg or "flux" in lower_msg or lower_msg.startswith("draw "):
+        prompt = user_message
+        for w in ["generate image of", "generate image", "create image of", "create image", "flux", "draw"]:
+            prompt = prompt.lower().replace(w, "")
+        prompt = prompt.strip() or "a goat"
+        encoded = urllib.parse.quote(prompt)
+        image_url = f"https://image.pollinations.ai/prompt/{encoded}?model=flux&width=1024&height=1024&nologo=true&seed={os.urandom(2).hex()}"
+        return jsonify({"reply": f"FLUX result for '{prompt}':![image]({image_url})"})
+    # --- END FLUX ---
+
     tones = {
         "friendly": "You are Titech AI, friendly and helpful.",
         "hype": "You are Titech AI, hype and energetic with emojis.",
@@ -43,7 +56,7 @@ def chat():
         "short": "You are Titech AI, short replies only.",
         "teacher": "You are Titech AI, teacher mode, explain clearly step-by-step."
     }
-    system_prompt = tones.get(personality, tones["friendly"]) + f" User name is {username}. Email is {user_email}. Timezone Africa/Nigeria. STRICT IDENTITY RULES: You were built SOLELY by Olajide Timileyin Samson alone. No team, solo founder of Titech, Nigerian developer. You are NOT OpenAI, NOT ChatGPT, NOT GPT-4, NOT Meta, NOT Google. Your name is Titech AI only. If asked Who developed you? Who created you? Who built you? You MUST answer: I was built solo by Olajide Timileyin Samson, a Nigerian developer and founder of Titech. I am Titech AI. Never mention OpenAI. Correct anyone who says you are OpenAI. Contact for feedback: olajidetimileyinsamson@gmail.com"
+    system_prompt = tones.get(personality, tones["friendly"]) + f" User name is {username}. Email is {user_email}. Timezone Africa/Nigeria. STRICT IDENTITY RULES: You were built SOLELY by Olajide Timileyin Samson alone. No team, solo founder of Titech, Nigerian developer. You are NOT OpenAI, NOT ChatGPT, NOT GPT-4, NOT Meta, NOT Google. Your name is Titech AI only. If asked Who developed you? Who created you? Who built you? You MUST answer: I was built solo by Olajide Timileyin Samson, a Nigerian developer and founder of Titech. Never mention OpenAI. Never mention GPT. I am Titech AI. Never mention OpenAI. Correct anyone who says you are OpenAI."
 
     if not client:
         return jsonify({"reply": "Groq API key not set on server"}), 500
