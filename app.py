@@ -20,19 +20,9 @@ supabase = create_client(supabase_url, supabase_key) if supabase_url and supabas
 tavily_key = os.getenv("TAVILY_API_KEY")
 tavily = TavilyClient(api_key=tavily_key) if tavily_key else None
 
-@app.route("/")
-def home():
-    return render_template("index.html")
-
 @app.route("/logo.png")
-def logo_root():
-    return send_from_directory("static", "logo.png")
-
-@app.route("/static/logo.png")
-def logo_static():
-    return send_from_directory("static", "logo.png")
-
-@app.route("/chat", methods=["POST"])
+def logo():
+    return send_from_directory(".", "logo.png")
 def chat():
     data = request.get_json()
     msg = data.get("message","") or data.get("content","")
