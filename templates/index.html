@@ -126,8 +126,6 @@ document.getElementById("pill2").textContent = tone;
 document.getElementById("toneSel").value = tone;
 document.getElementById("sName").textContent = username;
 document.getElementById("sEmail").textContent = user_email;
-let count = parseInt(localStorage.getItem("titech_count")||"5");
-document.getElementById("counter").textContent = `${count}/10 messages used · Resets tomorrow`;
 
 const hr = new Date().toLocaleString("en-NG",{timeZone:"Africa/Lagos",hour:"numeric",hour12:false});
 let gtxt="Good afternoon"; if(hr<12) gtxt="Good morning"; else if(hr>=18) gtxt="Good evening";
@@ -138,18 +136,24 @@ function closeM(){document.getElementById("modal").style.display="none";document
 function save(){tone=document.getElementById("toneSel").value;localStorage.setItem("titech_tone",tone);document.getElementById("pill").textContent=tone.toUpperCase()+" 💎";document.getElementById("pill2").textContent=tone;closeM()}
 
 async function send(){
- const i=document.getElementById("msg"); const t=i.value.trim(); if(!t) return;
+ const i=document.getElementById("msg"); 
+ const t=i.value.trim(); 
+ if(!t) return;
  const c=document.getElementById("chat");
- c.innerHTML+=`<div class="user-msg">${t}</div><div class="copy-row" style="align-self:flex-end"><button onclick="navigator.clipboard.writeText('${t.replace(/'/g,"\\'")}')">📋 Copy</button></div>`;
- i.value="";
- count++; localStorage.setItem("titech_count",count);
- document.getElementById("counter").textContent=`${count}/10 messages used · Resets tomorrow`;
+ c.innerHTML+=`<div class="user-msg">${t}</div>`;
+ i.value=""; c.scrollTop=c.scrollHeight;
  try{
-   const r=await fetch("/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:t,personality:tone,username:username,user_email:user_email})});
-   const d=await r.json();
-   c.innerHTML+=`<div class="ai-msg">✨ ${d.reply} ✨</div><div class="copy-row"><button onclick="navigator.clipboard.writeText(this.parentElement.previousElementSibling.innerText)">📋 Copy</button><button onclick="this.parentElement.previousElementSibling.remove();this.parentElement.remove()">🗑️</button></div>`;
-   c.scrollTop=c.scrollHeight;
- }catch(e){c.innerHTML+=`<div class="ai-msg">Error: ${e}</div>`}
+  const r=await fetch("/chat",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({message:t})
+  });
+  const d=await r.json();
+  c.innerHTML+=`<div class="ai-msg">${d.reply||d.response||"No reply"}</div>`;
+  c.scrollTop=c.scrollHeight;
+ }catch(e){
+  c.innerHTML+=`<div class="ai-msg">Error: ${e.message}</div>`;
+ }
 }
 document.getElementById("msg").addEventListener("keydown",e=>{if(e.key==="Enter") send()});
 </script>
