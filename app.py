@@ -1,6 +1,4 @@
 import os
-from datetime import datetime
-import pytz
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 from groq import Groq
