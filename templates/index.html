@@ -97,7 +97,7 @@ let c=document.getElementById("chat");
 c.innerHTML+=`<div class="user-msg">${t}</div>`;
 inp.value=""; c.scrollTop=c.scrollHeight;
 try{
-let r=await fetch("/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:t,personality:tone,username:username,user_email:user_email})});
+ let r=await fetch("/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:t,personality:tone,username:username,user_email:user_email})}),
 let d=await r.json();
 let raw=d.reply||d.response||"No reply";
 let html=raw.replace(/!\[image\]\((https?:\/\/[^\s)]+)\)/g,'<img src="$1" style="max-width:100%;border-radius:12px;margin-top:8px;display:block;" loading="lazy" />');
@@ -105,6 +105,22 @@ c.innerHTML+=`<div class="ai-msg">${html}</div>`;
 c.scrollTop=c.scrollHeight;
 }catch(e){c.innerHTML+=`<div class="ai-msg">Error: ${e.message}</div>`}
 }
+async function loadHistory(){
+  if(!user_email) return;
+  try{
+    let hr = await fetch(`/history?email=${user_email}`);
+    let data = await hr.json();
+    let c = document.getElementById("chat");
+    data.forEach(m=>{
+      c.innerHTML+=`<div class="user-msg">${m.message}</div>`;
+      c.innerHTML+=`<div class="ai-msg">${m.reply}</div>`;
+    });
+    c.scrollTop=c.scrollHeight;
+  }catch(e){}
+}
+loadHistory();
+
+document.getElementById("msg").addEventList
 document.getElementById("msg").addEventListener("keydown",e=>{if(e.key==="Enter") send()});
 </script>
 </body>
