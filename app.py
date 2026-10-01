@@ -17,6 +17,13 @@ tavily = TavilyClient(api_key=tavily_key) if tavily_key else None
 def home():
     return render_template("index.html")
 @app.route("/logo.png")
+@app.route("/login")
+def login_page():
+    return render_template("login.html")
+
+@app.route("/config")
+def config():
+    return jsonify({"supabase_url": os.getenv("SUPABASE_URL"), "supabase_key": os.getenv("SUPABASE_KEY")})
 def logo():
     return send_from_directory(".", "logo.png")
 @app.route("/chat", methods=["POST"])
