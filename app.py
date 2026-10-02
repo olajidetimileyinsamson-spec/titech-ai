@@ -55,20 +55,23 @@ def chat():
     user_email = data.get("user_email", "")
     lower_msg = user_message.lower()
 
-    if "generate image" in lower_msg or "create image" in lower_msg or "flux" in lower_msg or lower_msg.startswith("draw "):
+        if "generate image" in lower_msg or "create image" in lower_msg or "generate picture" in lower_msg or "create picture" in lower_msg or "flux" in lower_msg or "picture of" in lower_msg or "image of" in lower_msg:
         prompt = user_message
-        for w in ["generate image of", "generate image", "create image of", "create image", "flux", "draw"]:
+        for w in ["generate image of", "generate image", "create image of", "create image", "generate picture of", "generate picture", "create picture of", "create picture", "picture of", "image of", "flux"]:
             prompt = prompt.lower().replace(w, "")
         prompt = prompt.strip() or "a goat"
+        # remove extra words like 'a', 'the'
+        prompt = prompt.strip()
         encoded = urllib.parse.quote(prompt)
-        image_url = f"https://image.pollinations.ai/prompt/{encoded}?model=flux&width=1024&height=1024&seed={os.urandom(2).hex()}"
-        reply_text = f"FLUX result for '{prompt}':![{prompt}]({image_url})"
+        import random
+        image_url = f"https://image.pollinations.ai/prompt/{encoded}?model=flux&width=1024&height=1024&nologo=true&seed={random.randint(1,999999)}"
+        reply_text = f"Here is your **{prompt}** — Boss, generated 🔥"
         if supabase and user_email:
             try:
-                supabase.table("chats").insert({"user_email": user_email, "username": username, "message": user_message, "reply": reply_text, "personality": personality}).execute()
+                supabase.table("chats").insert({"user_email": user_email, "username": user_message, "message": prompt}).execute()
             except:
                 pass
-        return jsonify({"reply": reply_text})
+        return jsonify({"reply": reply_text, "image_url": image_url})
 
     tones = {
         "friendly": "You are Titech AI, friendly and helpful.",
