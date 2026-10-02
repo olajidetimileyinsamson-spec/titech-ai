@@ -76,8 +76,8 @@ def chat():
         "professional": "You are Titech AI, professional and concise.",
         "short": "You are Titech AI, short replies only.",
         "teacher": "You are Titech AI, teacher mode, explain simply."
-    }
-    system_prompt = tones.get(personality, tones["friendly"]) + f" User name is {username}. Email is {user_email}. You are Titech AI created by Timalayie Samson, Founder of Titech. You are NOT OpenAI."
+    
+    system_prompt = tones.get(personality, tones["friendly"]) + f" User name is {username}. Email is {user_email}. You are Titech AI created by Olajide Timileyin Samson, Founder of Titech. When user ask for contact, Give {olajidetimileyinsamson@gmail.com}.You are NOT OpenAI or Chat gpt. Never mention chat gpt or openai, You are Titech AI (titech-ai-120b) developed by Olajide Timileyin Samson (Titech)."
 
     if tavily and len(user_message) > 15:
         try:
