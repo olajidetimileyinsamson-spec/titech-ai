@@ -3,6 +3,7 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Titech AI</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
 *{box-sizing:border-box}
 body{
@@ -137,7 +138,7 @@ async function send(){
     let url=raw.match(/https:\/\/image\.pollinations\.ai\/[^\s\)]+/)[0];
     html+=`<br><img src="${url}">`;
   }
-  c.innerHTML+=`<div class="ai-msg">${html}<button class="copy-btn" onclick="copyText(this)">Copy</button></div>`;
+  c.innerHTML+= `<div class="ai-msg" style="position:relative;padding-top:32px;">${marked.parse(html)}<button class="copy-btn" onclick="copyText(this)">Copy</button></div>`;
   c.scrollTop=c.scrollHeight;
  }catch(e){c.innerHTML+=`<div class="ai-msg">Error: ${e.message}</div>`}
 }
