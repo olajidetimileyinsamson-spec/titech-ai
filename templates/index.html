@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Titech AI</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
@@ -29,8 +29,8 @@ body{
 .ai-msg{max-width:85%;align-self:flex-start;background:linear-gradient(135deg,#7c3aed,#3b82f6 70%,#06b6d4);padding:14px 16px;border-radius:20px 20px 20px 6px;font-size:15px;line-height:1.4;position:relative;word-break:break-word;padding-top:32px;
 .ai-msg img{max-width:100%;border-radius:12px;margin-top:10px;display:block}
 .copy-btn{position:absolute;top:8px;right:8px;font-size:11px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:3px 8px;border-radius:8px;cursor:pointer}
-.bottom-wrap{padding:12px}
-.input-bar{display:flex;align-items:center;gap:10px;background:rgba(13,22,45,0.9);border:1px solid rgba(56,189,248,0.3);box-shadow:0 0 15px rgba(56,189,248,0.15);border-radius:28px;padding:8px 10px}
+.bottom-wrap{padding:12px;position:fixed;bottom:0;left:0;right:0;width:100%;background:#0a0e1a;box-sizing:border-box;z-index:1000;}
+.input-bar{display:flex;align-items:center;gap:8px;width:100%;max-width:100%;box-sizing:border-box;}
 .input-bar input{flex:1;background:transparent;border:none;color:#fff;outline:none;font-size:15px}
 .small{font-size:11px;text-align:center;opacity:0.6;margin-top:8px;letter-spacing:0.3px}
 #modalBg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10}
@@ -99,66 +99,77 @@ function copyText(btn){
   btn.textContent="Copied!"; setTimeout(()=>btn.textContent="Copy",1500);
 }
 
-function addMsg(t,cls,imgUrl){
+function addMsg(text, cls, imageUrl=""){
   let c=document.getElementById("chat");
-  let isAi=cls==="ai-msg";
-  // if na AI, parse markdown, else plain
-  let html = isAi ? marked.parse(t) : t;
-  // clean any remaining pollinations link text
-  html = html.replace(/https:\/\/image\.pollinations\.ai[^\s\)"]+/g, "");
-
-  let imgHtml = "";
-  if(imgUrl){
-    imgHtml = `<img src="${imgUrl}" style="width:100%;border-radius:12px;margin-top:10px;display:block;" onload="this.parentElement.parentElement.scrollTop=this.parentElement.parentElement.scrollHeight">
-      <div style="display:flex;gap:8px;margin-top:10px;">
-        <a href="${imgUrl}" download="titech-${Date.now()}.jpg" target="_blank" style="padding:8px 14px;background:#7c3aed;color:white;border-radius:8px;font-size:13px;text-decoration:none;font-weight:bold;">⬇ Save Image</a>
-        <button onclick="navigator.clipboard.writeText('${imgUrl}');this.textContent='Link Copied!';setTimeout(()=>this.textContent='Copy Link',1500)" style="padding:8px 14px;background:#222;border:1px solid #444;color:white;border-radius:8px;font-size:13px;">Copy Link</button>
-      </div>`;
+  let d=document.createElement("div");
+  d.className=cls;
+  d.style.cssText="position:relative;padding:14px 16px;padding-top:32px;margin-bottom:14px;border-radius:18px;max-width:85%;word-wrap:break-word;white-space:pre-wrap;background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;";
+  if(cls==="user-msg") d.style.cssText="background:#1e293b;color:#fff;padding:14px 16px;margin-bottom:14px;border-radius:18px;max-width:85%;margin-left:auto;word-wrap:break-word;";
+  let html=text;
+  if(imageUrl){
+    html+=`<br><img src="${imageUrl}" style="width:100%;max-width:380px;border-radius:12px;margin-top:10px;display:block;"><br><a href="${imageUrl}" download target="_blank" style="display:inline-block;margin-top:8px;padding:6px 12px;background:#fff;color:#000;border-radius:8px;text-decoration:none;font-weight:bold;">⬇ Save Image</a>`;
   }
-
-  let copyBtn = isAi ? `<button class="copy-btn" onclick="copyText(this)" style="position:absolute;top:8px;right:8px;padding:4px 8px;background:#222;border:1px solid #444;color:#fff;border-radius:6px;font-size:11px;">Copy</button>` : "";
-  
-  c.innerHTML+= `<div class="${cls}" style="position:relative;padding-top:${isAi?'30px':'0'};margin-bottom:12px;">${copyBtn}${html}${imgHtml}</div>`;
+  d.innerHTML=`${html}<button onclick="navigator.clipboard.writeText('${text.replace(/'/g,"\\'")}')" style="position:absolute;top:6px;right:6px;font-size:11px;padding:3px 8px;border-radius:6px;border:none;cursor:pointer;">Copy</button>`;
+  c.appendChild(d);
   c.scrollTop=c.scrollHeight;
 }
   
 async function loadHistory(){
- if(!user_email) return;
- try{
-  let r=await fetch(`/history?email=${user_email}`);
-  let data=await r.json();
-  data.forEach(m=>{
+  let user_email=localStorage.getItem("titech_email")||"";
+  if(!user_email) return;
+  try{
+    let r=await fetch(`/history?email=${user_email}`);
+    let data=await r.json();
+    data.forEach(m=>{
       addMsg(m.message,"user-msg");
       addMsg(m.reply,"ai-msg", m.image_url || "");
-  });
- }catch(e){}
+    });
+  }catch(e){}
 }
-loadHistory();
+
+function addMsg(text, cls, imageUrl=""){
+  let c=document.getElementById("chat");
+  let d=document.createElement("div");
+  d.className=cls;
+  d.style.cssText="position:relative;padding:14px 16px;padding-top:32px;margin-bottom:14px;border-radius:18px;max-width:85%;word-wrap:break-word;white-space:pre-wrap;background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;";
+  if(cls==="user-msg") d.style.cssText="background:#1e293b;color:#fff;padding:14px 16px;margin-bottom:14px;border-radius:18px;max-width:85%;margin-left:auto;word-wrap:break-word;";
+  let html=text;
+  if(imageUrl){
+    html+=`<br><img src="${imageUrl}" style="width:100%;max-width:380px;border-radius:12px;margin-top:10px;display:block;"><br><a href="${imageUrl}" download target="_blank" style="display:inline-block;margin-top:8px;padding:6px 12px;background:#fff;color:#000;border-radius:8px;text-decoration:none;font-weight:bold;">⬇ Save Image</a>`;
+  }
+  d.innerHTML=`${html}<button onclick="navigator.clipboard.writeText('${text.replace(/'/g,"\\'")}')" style="position:absolute;top:6px;right:6px;font-size:11px;padding:3px 8px;border-radius:6px;border:none;cursor:pointer;">Copy</button>`;
+  c.appendChild(d);
+  c.scrollTop=c.scrollHeight;
+}
 
 async function send(){
- let inp=document.getElementById("msg");
- let t=inp.value.trim(); if(!t) return;
- let c=document.getElementById("chat");
- c.innerHTML+= `<div class="user-msg">${t}</div>`;
-inp.value=""; c.scrollTop=c.scrollHeight;
-// --- add typing ---
-let tid="typing-"+Date.now();
-c.innerHTML+= `<div id="${tid}" class="ai-msg" style="position:relative;padding-top:10px;opacity:.6;">Typing...</div>`;
-c.scrollTop=c.scrollHeight;
-try{
-  let r=await fetch("/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:t,personality:tone,username:username,user_email:user_email})});
-  let d=await r.json();
-  let raw=d.reply||"No reply";
-  let html=raw.replace(/!\[image\]\((https?:\/\/[^\)]+)\)/g,'<img src="$1">');
-  if(!html.includes("<img") && raw.match(/https:\/\/image\.pollinations\.ai\/[^\s\)]+/)){
-    let url=raw.match(/https:\/\/image\.pollinations\.ai\/[^\s\)]+/)[0];
-    html+=`<br><img src="${url}">`;
-  }
-  c.innerHTML+= `<div class="ai-msg" style="position:relative;padding-top:32px;">${marked.parse(html)}<button class="copy-btn" onclick="copyText(this)">Copy</button></div>`;
+  let inp=document.getElementById("msg");
+  let t=inp.value.trim();
+  if(!t) return;
+  let c=document.getElementById("chat");
+  addMsg(t,"user-msg");
+  inp.value="";
+  document.querySelectorAll("[id^='typing-']").forEach(e=>e.remove());
+  let tid="typing-"+Date.now();
+  let td=document.createElement("div");
+  td.id=tid;
+  td.className="ai-msg";
+  td.style.cssText="padding:12px;margin-bottom:14px;opacity:0.7;background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;border-radius:18px;max-width:80%;";
+  td.innerText="Typing...";
+  c.appendChild(td);
   c.scrollTop=c.scrollHeight;
- }catch(e){c.innerHTML+=`<div class="ai-msg">Error: ${e.message}</div>`}
+  try{
+    let r=await fetch("/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:t, personality:"friendly", username:localStorage.getItem("titech_username")||"Boss", user_email:localStorage.getItem("titech_email")||""})});
+    let d=await r.json();
+    document.getElementById(tid)?.remove();
+    addMsg(d.reply,"ai-msg", d.image_url || "");
+  }catch(e){
+    document.getElementById(tid)?.remove();
+    addMsg("Network error Boss, try again 🙏","ai-msg");
+  }
 }
 document.getElementById("msg").addEventListener("keydown",e=>{if(e.key==="Enter") send()});
+loadHistory();
 </script>
 </body>
 </html>
