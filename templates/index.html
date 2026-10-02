@@ -94,30 +94,42 @@ function closeM(){document.getElementById("modal").style.display="none";document
 function saveT(){tone=document.getElementById("toneSel").value;localStorage.setItem("titech_tone",tone);document.getElementById("pill").textContent=tone.toUpperCase();document.getElementById("smallTone").textContent=tone;closeM();}
 
 function copyText(btn){
-  let txt=btn.parentElement.innerText.replace("Copy","").trim();
+  let txt=btn.parentElement.innerText.replace("Copied!","").replace("Copy","").trim();
   navigator.clipboard.writeText(txt);
   btn.textContent="Copied!"; setTimeout(()=>btn.textContent="Copy",1500);
 }
-function addMsg(t,cls){
+
+function addMsg(t,cls,imgUrl){
   let c=document.getElementById("chat");
   let isAi=cls==="ai-msg";
-  let html=t.replace(/!\[image\]\((https?:\/\/[^\)]+)\)/g,'<img src="$1">');
-  if(!html.includes("<img") && t.match(/https:\/\/image\.pollinations\.ai\/[^\s\)]+/)){
-    let url=t.match(/https:\/\/image\.pollinations\.ai\/[^\s\)]+/)[0];
-    html+=`<br><img src="${url}">`;
+  // if na AI, parse markdown, else plain
+  let html = isAi ? marked.parse(t) : t;
+  // clean any remaining pollinations link text
+  html = html.replace(/https:\/\/image\.pollinations\.ai[^\s\)"]+/g, "");
+
+  let imgHtml = "";
+  if(imgUrl){
+    imgHtml = `<img src="${imgUrl}" style="width:100%;border-radius:12px;margin-top:10px;display:block;" onload="this.parentElement.parentElement.scrollTop=this.parentElement.parentElement.scrollHeight">
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <a href="${imgUrl}" download="titech-${Date.now()}.jpg" target="_blank" style="padding:8px 14px;background:#7c3aed;color:white;border-radius:8px;font-size:13px;text-decoration:none;font-weight:bold;">⬇ Save Image</a>
+        <button onclick="navigator.clipboard.writeText('${imgUrl}');this.textContent='Link Copied!';setTimeout(()=>this.textContent='Copy Link',1500)" style="padding:8px 14px;background:#222;border:1px solid #444;color:white;border-radius:8px;font-size:13px;">Copy Link</button>
+      </div>`;
   }
-  let copy=isAi?`<button class="copy-btn" onclick="copyText(this)" style="position:absolute;top:6px;right:8px;">Copy</button>`:"";
-c.innerHTML+=`<div class="${cls}" style="position:relative;padding-top:32px;">${copy}${html}</div>`;
-c.scrollTop=c.scrollHeight;
+
+  let copyBtn = isAi ? `<button class="copy-btn" onclick="copyText(this)" style="position:absolute;top:8px;right:8px;padding:4px 8px;background:#222;border:1px solid #444;color:#fff;border-radius:6px;font-size:11px;">Copy</button>` : "";
+  
+  c.innerHTML+= `<div class="${cls}" style="position:relative;padding-top:${isAi?'30px':'0'};margin-bottom:12px;">${copyBtn}${html}${imgHtml}</div>`;
+  c.scrollTop=c.scrollHeight;
 }
+  
 async function loadHistory(){
  if(!user_email) return;
  try{
   let r=await fetch(`/history?email=${user_email}`);
   let data=await r.json();
   data.forEach(m=>{
-    addMsg(m.message,"user-msg");
-    addMsg(m.reply,"ai-msg");
+      addMsg(m.message,"user-msg");
+      addMsg(m.reply,"ai-msg", m.image_url || "");
   });
  }catch(e){}
 }
