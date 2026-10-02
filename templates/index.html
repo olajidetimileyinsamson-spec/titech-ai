@@ -127,9 +127,13 @@ async function send(){
  let inp=document.getElementById("msg");
  let t=inp.value.trim(); if(!t) return;
  let c=document.getElementById("chat");
- c.innerHTML+=`<div class="user-msg">${t}</div>`;
- inp.value=""; c.scrollTop=c.scrollHeight;
- try{
+ c.innerHTML+= `<div class="user-msg">${t}</div>`;
+inp.value=""; c.scrollTop=c.scrollHeight;
+// --- add typing ---
+let tid="typing-"+Date.now();
+c.innerHTML+= `<div id="${tid}" class="ai-msg" style="position:relative;padding-top:10px;opacity:.6;">Typing...</div>`;
+c.scrollTop=c.scrollHeight;
+try{
   let r=await fetch("/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:t,personality:tone,username:username,user_email:user_email})});
   let d=await r.json();
   let raw=d.reply||"No reply";
