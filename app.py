@@ -1,4 +1,4 @@
-import os, urllib.parse
+import os, urllib.parse,random
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 from groq import Groq
@@ -59,16 +59,13 @@ def chat():
         prompt = user_message
         for w in ["generate image of", "generate image", "create image of", "create image", "generate picture of", "generate picture", "create picture of", "create picture", "picture of", "image of", "flux"]:
             prompt = prompt.lower().replace(w, "")
-        prompt = prompt.strip() or "a goat"
-        # remove extra words like 'a', 'the'
-        prompt = prompt.strip()
+        prompt = prompt.strip() or "a luxury Benz"
         encoded = urllib.parse.quote(prompt)
-        import random
         image_url = f"https://image.pollinations.ai/prompt/{encoded}?model=flux&width=1024&height=1024&nologo=true&seed={random.randint(1,999999)}"
         reply_text = f"Here is your **{prompt}** — Boss, generated 🔥"
         if supabase and user_email:
             try:
-                supabase.table("chats").insert({"user_email": user_email, "username": user_message, "message": prompt}).execute()
+                supabase.table("chats").insert({"user_email": user_email, "username": username, "message": user_message, "reply": reply_text, "image_url": image_url}).execute()
             except:
                 pass
         return jsonify({"reply": reply_text, "image_url": image_url})
