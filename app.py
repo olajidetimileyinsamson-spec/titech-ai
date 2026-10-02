@@ -55,7 +55,7 @@ def chat():
     user_email = data.get("user_email", "")
     lower_msg = user_message.lower()
 
-        if "generate image" in lower_msg or "create image" in lower_msg or "generate picture" in lower_msg or "create picture" in lower_msg or "flux" in lower_msg or "picture of" in lower_msg or "image of" in lower_msg:
+    if "generate image" in lower_msg or "create image" in lower_msg or "generate picture" in lower_msg or "create picture" in lower_msg or "flux" in lower_msg or "picture of" in lower_msg or "image of" in lower_msg:
         prompt = user_message
         for w in ["generate image of", "generate image", "create image of", "create image", "generate picture of", "generate picture", "create picture of", "create picture", "picture of", "image of", "flux"]:
             prompt = prompt.lower().replace(w, "")
