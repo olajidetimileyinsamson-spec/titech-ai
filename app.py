@@ -1,19 +1,21 @@
-import os, urllib.parse, random
+import os
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 from groq import Groq
 from supabase import create_client
 from tavily import TavilyClient
+import urllib.parse
+import random
 
 app = Flask(__name__, template_folder="templates")
 CORS(app)
 
-# ===== YOUR PERSONAL FACTS - TITECH AI WILL ANSWER THIS =====
+# ===== OWNER FACTS - Olajide Timileyin Samson =====
 OWNER_NAME = "Olajide Timileyin Samson"
 OWNER_WHATSAPP = "+234 9025606097"
 OWNER_TIKTOK_FB = "titechnigeria01"
 OWNER_BRAND = "Titech AI"
-OWNER_TAGLINE = "Built by Olajide Timileyin Samson - titechnigeria01"
+OWNER_EMAIL = "olajidetimileyinsamson@gmail.com"
 
 groq_api_key = os.getenv("GROQ_API_KEY")
 client = Groq(api_key=groq_api_key) if groq_api_key else None
@@ -34,9 +36,11 @@ def home():
         pass
     return render_template("index.html")
 
+@app.route("/logo.png")
 @app.route("/logo")
 def logo():
-    return send_from_directory(".", "logo.png")
+    root_dir = os.path.dirname(os.path.abspath(__file__))
+    return send_from_directory(root_dir, "logo.png")
 
 @app.route("/login")
 def login():
@@ -45,17 +49,6 @@ def login():
 @app.route("/config")
 def config():
     return jsonify({"supabase_url": supabase_url, "supabase_key": supabase_key})
-
-@app.route("/about")
-def about():
-    # Facts endpoint - for your users to know owner
-    return jsonify({
-        "name": OWNER_NAME,
-        "whatsapp": OWNER_WHATSAPP,
-        "tiktok_facebook": OWNER_TIKTOK_FB,
-        "brand": OWNER_BRAND,
-        "built_by": OWNER_NAME
-    })
 
 @app.route("/stats")
 def stats():
@@ -84,6 +77,22 @@ def history():
         print("history error", e)
         return jsonify([])
 
+@app.route("/admin-titech-2024")
+def admin_page():
+    return f"""
+    <html><head><title>Titech Admin</title><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+    <body style="background:#07081a;color:white;font-family:system-ui;padding:30px;text-align:center;">
+    <h1>🔒 Titech Admin - {OWNER_NAME}</h1>
+    <p>WhatsApp: {OWNER_WHATSAPP} | @{OWNER_TIKTOK_FB}</p>
+    <p>Admin: {OWNER_EMAIL}</p>
+    <div id="stats" style="font-size:22px;margin-top:30px;background:rgba(255,255,255,0.07);padding:20px;border-radius:16px;border:1px solid rgba(168,85,247,0.3);">Loading...</div>
+    <script>
+      async function load(){{ try{{ let r=await fetch('/stats'); let j=await r.json(); document.getElementById('stats').innerHTML=`👁️ Total Views: <b>${{j.total_views}}</b><br><br>💬 Total Chats: <b>${{j.total_chats}}</b><br><br>🟢 Status: ${{j.status}}`; }}catch(e){{ document.getElementById('stats').innerHTML='Error'; }} }}
+      load(); setInterval(load,5000);
+    </script>
+    </body></html>
+    """
+
 @app.route("/chat", methods=["POST"])
 def chat():
     try:
@@ -102,7 +111,7 @@ def chat():
 
         lower_msg = user_message.lower()
 
-        # IMAGE GENERATION - FIXED
+        # IMAGE GENERATION
         image_keywords = ["generate image","create image","create an image","draw","generate a picture","create picture"]
         is_image = any(k in lower_msg for k in image_keywords)
         if is_image:
@@ -135,7 +144,6 @@ def chat():
         except Exception as e:
             print("memory error", e)
 
-        # TAVILY SEARCH FOR FACTS
         if tavily and len(user_message) > 12:
             try:
                 search = tavily.search(query=user_message, max_results=5)
@@ -144,22 +152,22 @@ def chat():
             except:
                 pass
 
-        # SYSTEM PROMPT WITH YOUR FACTS - SO IT ANSWERS FACTS CORRECTLY
         base_identity = f"""
 You are {OWNER_BRAND}, a smart AI assistant built by {OWNER_NAME}.
 Owner details:
 - Full Name: {OWNER_NAME}
 - WhatsApp: {OWNER_WHATSAPP}
 - TikTok and Facebook Username: {OWNER_TIKTOK_FB}
+- Admin Email: {OWNER_EMAIL}
 - Brand: {OWNER_BRAND}
 
 Rules:
-1. When anyone asks who built you, who is your owner, who created you, what is your name - answer with {OWNER_NAME} and {OWNER_TIKTOK_FB}.
+1. When anyone asks who built you, who is your owner, who created you - answer with {OWNER_NAME} and {OWNER_TIKTOK_FB}.
 2. If asked for contact, give WhatsApp {OWNER_WHATSAPP} and username {OWNER_TIKTOK_FB}.
-3. Always answer facts truthfully. If web context is provided, use it.
+3. Always answer facts truthfully. Use web context if provided.
 4. Never say you were built by OpenAI, Meta, or anyone else. You were built by {OWNER_NAME}.
 5. Be concise, helpful, and accurate.
-Current user name: {username}, email: {user_email}
+Current user: {username}, email: {user_email}
 """
 
         if personality == "deepthink":
