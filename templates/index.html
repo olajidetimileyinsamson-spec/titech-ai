@@ -1,149 +1,107 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Titech AI</title>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
-*{box-sizing:border-box}
-body{
- margin:0; background:#07081a; color:#fff;
- font-family:system-ui, -apple-system, sans-serif;
- display:flex; flex-direction:column; height:100vh; height:100dvh; overflow:hidden;
-}
-.header{padding:12px 16px; display:flex; justify-content:space-between; align-items:center; background:#0f0f1e; border-bottom:1px solid rgba(255,255,255,0.08); flex-shrink:0;}
-.h-left{display:flex; align-items:center; gap:10px;}
-.logo{width:32px; height:32px; border-radius:8px; object-fit:cover; background:linear-gradient(135deg,#a855f7,#ec4899);}
-.icon-btn{background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; width:36px; height:36px; border-radius:8px; cursor:pointer;}
-#chat{flex:1; overflow-y:auto; overflow-x:hidden; padding:16px; display:flex; flex-direction:column; gap:14px; padding-bottom:110px; -webkit-overflow-scrolling:touch;}
-.user-msg{align-self:flex-end; background:linear-gradient(135deg,#7c3aed,#a855f7); padding:12px 16px; border-radius:18px 18px 4px 18px; max-width:85%; word-wrap:break-word; word-break:break-word;}
-.ai-msg{align-self:flex-start; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); padding:14px 16px; border-radius:18px 18px 18px 4px; max-width:88%; word-wrap:break-word; word-break:break-word; position:relative; overflow:hidden;}
-.ai-msg table{width:100%; display:block; overflow-x:auto; white-space:nowrap; border-collapse:collapse; margin:10px 0; font-size:12px;}
-.ai-msg th, .ai-msg td{border:1px solid rgba(255,255,255,0.15); padding:6px 8px; text-align:left;}
-.ai-msg pre{max-width:100%; overflow-x:auto; background:rgba(0,0,0,0.4); padding:10px; border-radius:8px; font-size:12px;}
-.ai-msg img{max-width:100%; border-radius:12px; margin-top:8px;}
-.copy-btn{position:absolute; top:6px; right:6px; background:rgba(255,255,255,0.12); border:none; color:#fff; padding:4px 8px; border-radius:6px; font-size:10px; cursor:pointer; z-index:2;}
-.input-bar{position:fixed; bottom:0; left:0; right:0; padding:12px 12px max(12px, env(safe-area-inset-bottom)) 12px; background:#07081a; border-top:1px solid rgba(255,255,255,0.08); display:flex; gap:10px; align-items:center; flex-shrink:0;}
-.input-bar input{flex:1; min-width:0; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:14px 16px; border-radius:24px; outline:none; font-size:16px;}
-#sendBtn{background:linear-gradient(135deg,#a855f7,#ec4899); color:#fff; border:none; width:44px; height:44px; border-radius:50%; cursor:pointer; font-size:18px; flex-shrink:0;}
-#modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; justify-content:center; align-items:center; padding:16px;}
-.modal-box{background:#14141f; padding:20px; border-radius:16px; width:100%; max-width:360px; border:1px solid rgba(168,85,247,0.2);}
-.neon-badge{ display:none; align-items:center; gap:6px; background:rgba(0,0,0,0.4); border:1px solid rgba(168,85,247,0.5); padding:6px 12px; border-radius:20px; font-size:11px; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#02040f;color:#fff;font-family:system-ui,-apple-system,sans-serif;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;position:relative}
+body::before{content:"";position:fixed;inset:0;background:linear-gradient(rgba(0,255,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,255,0.04) 1px,transparent 1px),radial-gradient(circle at 20% 30%,rgba(99,102,241,0.15),transparent 40%),radial-gradient(circle at 80% 80%,rgba(6,182,212,0.12),transparent 40%);background-size:50px 50px,50px 50px,100% 100%,100% 100%;z-index:-1}
+body::after{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,255,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,0.05) 1px,transparent 1px);background-size:30px 30px,30px 30px;mask-image:radial-gradient(ellipse at center,black 40%,transparent 80%);z-index:-1}
+.top-card{margin:16px;padding:18px 20px;background:linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03));border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 0 30px rgba(56,189,248,0.15),inset 0 1px 0 rgba(255,255,255,0.1);flex-shrink:0}
+.top-left h1{font-size:26px;font-weight:800;letter-spacing:-0.5px}
+.top-left p{font-size:12px;opacity:0.7;margin-top:5px;text-transform:capitalize}
+#viewBadge{display:none;font-size:10px;opacity:0.7;margin-top:4px}
+.menu-btn{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer}
+.menu-btn span{width:18px;height:2px;background:#fff;border-radius:2px;display:block;opacity:0.9}
+#chat{flex:1;overflow-y:auto;padding:10px 16px 130px 16px;display:flex;flex-direction:column;gap:16px}
+.ai-bubble{align-self:flex-start;max-width:78%;padding:16px 18px;background:linear-gradient(135deg,rgba(99,102,241,0.85),rgba(139,92,246,0.6) 50%,rgba(99,102,241,0.5));border:1px solid rgba(255,255,255,0.18);backdrop-filter:blur(16px);border-radius:20px 20px 20px 6px;box-shadow:0 8px 32px rgba(99,102,241,0.25),inset 0 1px 0 rgba(255,255,255,0.2);font-size:15px;line-height:1.5;word-break:break-word}
+.user-bubble{align-self:flex-end;max-width:78%;padding:14px 18px;background:linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.05));border:1px solid rgba(255,255,255,0.14);backdrop-filter:blur(16px);border-radius:20px 20px 6px 20px;box-shadow:0 4px 20px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.1);font-size:14px;line-height:1.45;word-break:break-word}
+.ai-bubble img,.user-bubble img{max-width:100%;border-radius:12px;margin-top:10px}
+.input-wrap{position:fixed;bottom:0;left:0;right:0;padding:12px 16px 18px 16px;background:linear-gradient(to top,#02040f 70%,transparent);flex-shrink:0}
+.input-bar{display:flex;align-items:center;gap:12px;padding:8px 8px 8px 10px;background:linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03));border:1px solid rgba(255,255,255,0.14);backdrop-filter:blur(20px);border-radius:28px;box-shadow:0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.1)}
+.plus-btn{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.input-bar input{flex:1;background:transparent;border:none;color:#fff;outline:none;font-size:15px}
+.input-bar input::placeholder{color:rgba(255,255,255,0.5)}
+.send-btn{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#22d3ee,#0ea5e9);border:none;color:#fff;font-size:18px;cursor:pointer;box-shadow:0 0 20px rgba(34,211,238,0.5);display:flex;align-items:center;justify-content:center}
+.bottom-text{text-align:center;font-size:9px;opacity:0.4;margin-top:10px;letter-spacing:0.3px;line-height:1.4}
+#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:99;justify-content:center;align-items:center;padding:20px}
+.modal-box{background:#0f1220;border:1px solid rgba(255,255,255,0.12);padding:20px;border-radius:20px;width:100%;max-width:360px}
 </style>
 </head>
 <body>
-<div id="modal" onclick="closeM()"><div class="modal-box" onclick="event.stopPropagation()">
-  <div style="display:flex; justify-content:space-between; align-items:center;"><b>⚙️ Settings</b><span onclick="closeM()" style="cursor:pointer; padding:4px 8px;">✕</span></div>
-  <div style="margin-top:16px;">
-    <label style="font-size:11px; opacity:0.7;">Email - idEmail</label>
-    <div id="idEmail" style="font-size:13px; margin-top:6px; padding:10px; background:rgba(255,255,255,0.05); border-radius:8px; word-break:break-all;"></div>
-    <label style="display:block; margin-top:16px; font-size:11px; opacity:0.7;">Tone</label>
-    <select id="personality" onchange="localStorage.setItem('titech_personality', this.value)" style="width:100%; padding:12px; border-radius:8px; background:#0a0a0f; color:#fff; border:1px solid rgba(255,255,255,0.15); margin-top:6px;">
-      <option value="friendly">😊 Friendly</option>
-      <option value="hyper">⚡ Hyper</option>
-      <option value="professional">👔 Professional</option>
-      <option value="teacher">📚 Teacher</option>
-      <option value="deepthink">🧠 Deep Thinking</option>
-    </select>
-    <div style="margin-top:16px; font-size:11px; opacity:0.6;">User: <span id="idUser"></span></div>
-    <button class="icon-btn" style="width:100%; margin-top:16px; height:auto; padding:12px;" onclick="logout()">Logout</button>
-  </div>
-</div></div>
 
-<div class="header">
-  <div class="h-left">
-    <img src="/logo.png" class="logo" onerror="this.style.display='none'"><b>Titech AI</b>
-    <div id="viewBadge" class="neon-badge"><span>👁️</span><span id="viewCount">...</span></div>
+<div class="top-card">
+  <div class="top-left">
+    <h1>Titech AI </h1>
+    <p id="personalityPref">Friendly • Ready to help</p>
+    <div id="viewBadge">👁️ <span id="viewCount">...</span></div>
   </div>
-  <button class="icon-btn" onclick="openM()">⚙️</button>
+  <div class="menu-btn" onclick="openM()"><span></span><span></span><span></span></div>
 </div>
 
-<div id="chat"><div class="ai-msg" id="welcome">👋 Welcome to Titech AI! Ask me anything - friendly and accurate!</div></div>
-<div class="input-bar"><input id="msg" placeholder="Ask anything..." autocomplete="off"><button id="sendBtn" onclick="send()">↑</button></div>
+<div id="modal" onclick="closeM()"><div class="modal-box" onclick="event.stopPropagation()">
+  <div style="display:flex;justify-content:space-between"><b>Settings</b><span onclick="closeM()" style="cursor:pointer">✕</span></div>
+  <div style="margin-top:14px"><small style="opacity:0.6">Email</small><div id="idEmail" style="padding:10px;background:rgba(255,255,255,0.06);border-radius:10px;margin-top:6px;word-break:break-all;font-size:13px"></div></div>
+  <label style="display:block;margin-top:14px;font-size:12px;opacity:0.7">Personality Preference</label>
+  <select id="personality" style="width:100%;padding:12px;border-radius:10px;background:#0a0c18;color:#fff;border:1px solid rgba(255,255,255,0.15);margin-top:6px">
+    <option value="friendly">😊 Friendly</option>
+    <option value="professional">👔 Professional</option>
+    <option value="deepthink">🧠 Deep Thinking</option>
+    <option value="teacher">📚 Teacher</option>
+    <option value="hyper">⚡ Hyper</option>
+  </select>
+  <button onclick="logout()" style="width:100%;margin-top:14px;padding:12px;border-radius:10px;background:rgba(255,255,255,0.08);border:none;color:#fff">Logout</button>
+</div></div>
+
+<div id="chat"><div class="ai-bubble">✨ Hello Boss! I be Titech AI — built by Olajide Timileyin Samson. Ask me anything!</div></div>
+
+<div class="input-wrap">
+  <div class="input-bar"><div class="plus-btn">+</div><input id="msg" placeholder="Ask AI anything..." autocomplete="off"><button class="send-btn" id="sendBtn" onclick="send()">➤</button></div>
+  <div class="bottom-text">Free tier · Privacy on · No training on your chats · Created by Olajide Timileyin Samson</div>
+</div>
 
 <script>
 let titech_email = localStorage.getItem('titech_email');
 let titech_name = localStorage.getItem('titech_name');
-if(!titech_email || !titech_email.includes('@')){ window.location.href='/login'; }
-document.getElementById('idEmail').innerText = titech_email || 'guest';
-document.getElementById('idUser').innerText = titech_name || 'Boss';
-
-// ADMIN ONLY - YOUR EMAIL ONLY
+if(!titech_email || !titech_email.includes('@')){ location.href='/login'; }
+document.getElementById('idEmail').innerText = titech_email || '';
 const ADMIN_EMAIL = "olajidetimileyinsamson@gmail.com";
-if(titech_email && titech_email.toLowerCase() === ADMIN_EMAIL.toLowerCase()){
-  document.getElementById('viewBadge').style.display = 'flex';
-}
+if(titech_email && titech_email.toLowerCase()===ADMIN_EMAIL.toLowerCase()){ document.getElementById('viewBadge').style.display='block'; }
 
-document.getElementById('personality').value = localStorage.getItem('titech_personality') || 'friendly';
-function openM(){ document.getElementById('modal').style.display='flex'; }
-function closeM(){ document.getElementById('modal').style.display='none'; }
-function logout(){ localStorage.clear(); window.location.href='/login'; }
+let personalityEl = document.getElementById('personality');
+let prefEl = document.getElementById('personalityPref');
+personalityEl.value = localStorage.getItem('titech_personality') || 'friendly';
+function updatePrefText(){ let v=personalityEl.value; prefEl.innerText = v + ' • Ready to help'; }
+updatePrefText();
+personalityEl.addEventListener('change', ()=>{ localStorage.setItem('titech_personality', personalityEl.value); updatePrefText(); });
 
-function copyText(btn){
-  let text = btn.parentElement.getAttribute('data-raw') || btn.parentElement.innerText;
-  // clean copy text
-  text = text.replace(/Copy$/,'').trim();
-  navigator.clipboard.writeText(text).then(()=>{
-    let old = btn.innerText; btn.innerText='Copied!'; setTimeout(()=>btn.innerText=old,1200);
-  });
-}
+function openM(){document.getElementById('modal').style.display='flex'}
+function closeM(){document.getElementById('modal').style.display='none'}
+function logout(){localStorage.clear();location.href='/login'}
 
-function addMsg(text, cls, image_url){
-  let chat = document.getElementById('chat');
-  let welcome = document.getElementById('welcome');
-  if(welcome && cls==='user-msg'){ welcome.remove(); }
+function addMsg(text, cls, imgUrl){
+  if(!text || text.trim()==='') text='Sorry Boss, try again — I be Titech AI built by Olajide Timileyin Samson';
+  let c=document.getElementById('chat');
   let d=document.createElement('div'); d.className=cls;
-  d.setAttribute('data-raw', text);
-  let html;
-  try{ html = marked.parse(text); }catch(e){ html = text; }
-  d.innerHTML = html + (image_url?`<br><img src="${image_url}" loading="lazy">`:'') + `<button class="copy-btn" onclick="copyText(this)">Copy</button>`;
-  chat.appendChild(d);
-  chat.scrollTop = chat.scrollHeight;
+  let html; try{ html=marked.parse(text); }catch{ html=text; }
+  d.innerHTML=html+(imgUrl?`<br><img src="${imgUrl}" style="max-width:100%;border-radius:12px;margin-top:8px">`:'');
+  c.appendChild(d); c.scrollTop=c.scrollHeight;
 }
-
 async function loadHistory(){
-  try{
-    if(!titech_email) return;
-    let res=await fetch(`/history?email=${encodeURIComponent(titech_email)}`);
-    let data=await res.json();
-    if(data && data.length>0){
-      let chat=document.getElementById('chat'); chat.innerHTML='';
-      data.forEach(m=>{
-        addMsg(m.message,'user-msg','');
-        addMsg(m.reply,'ai-msg',m.image_url||'');
-      });
-    }
-  }catch(e){ console.log(e); }
+ try{ let r=await fetch(`/history?email=${encodeURIComponent(titech_email)}`); let data=await r.json(); if(data && data.length>0){ document.getElementById('chat').innerHTML=''; data.forEach(m=>{ addMsg(m.message,'user-bubble',''); addMsg(m.reply,'ai-bubble',m.image_url||''); }); } }catch(e){ console.log(e); }
 }
-
-async function fetchStats(){
-  try{
-    let r=await fetch('/stats'); let j=await r.json();
-    let el=document.getElementById('viewCount');
-    if(el) el.innerText=j.total_views+' | '+j.total_chats;
-  }catch{}
-}
-fetchStats(); loadHistory();
-
+async function fetchStats(){ try{ let r=await fetch('/stats'); let j=await r.json(); document.getElementById('viewCount').innerText=(j.total_views||0)+' views | '+(j.total_chats||0)+' chats'; }catch{} }
+loadHistory(); fetchStats();
 async function send(){
-  let input=document.getElementById('msg'); let txt=input.value.trim(); if(!txt) return;
-  addMsg(txt,'user-msg',''); input.value='';
-  let typingId='typing-'+Date.now();
-  let typingDiv=document.createElement('div'); typingDiv.id=typingId; typingDiv.className='ai-msg'; typingDiv.innerText='Titech AI is thinking...';
-  document.getElementById('chat').appendChild(typingDiv);
-  document.getElementById('chat').scrollTop=document.getElementById('chat').scrollHeight;
-  try{
-    let res=await fetch('/chat',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:txt, username:titech_name||'Boss', user_email:titech_email, personality:document.getElementById('personality').value||'friendly'})});
-    let data=await res.json();
-    document.getElementById(typingId).remove();
-    addMsg(data.reply||'Error','ai-msg',data.image_url||'');
-  }catch(e){
-    let el=document.getElementById(typingId); if(el) el.remove();
-    addMsg('Network error Boss, try again ⚡','ai-msg','');
-  }
+ let input=document.getElementById('msg'); let txt=input.value.trim(); if(!txt) return;
+ addMsg(txt,'user-bubble',''); input.value='';
+ let id='t'+Date.now(); let typing=document.createElement('div'); typing.id=id; typing.className='ai-bubble'; typing.innerText='Titech AI is thinking...'; document.getElementById('chat').appendChild(typing); document.getElementById('chat').scrollTop=document.getElementById('chat').scrollHeight;
+ try{ let res=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:txt,username:titech_name||'Boss',user_email:titech_email,personality:personalityEl.value||'friendly'})}); let data=await res.json(); document.getElementById(id).remove(); addMsg(data.reply||'Error, try again','ai-bubble',data.image_url||''); }catch(e){ let el=document.getElementById(id); if(el) el.remove(); addMsg('Network error, try again ⚡','ai-bubble',''); }
 }
-document.getElementById('msg').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); send(); } });
-document.getElementById('sendBtn').addEventListener('touchstart', function(e){ e.preventDefault(); send(); }, {passive:false});
+document.getElementById('msg').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); } });
 </script>
 </body>
 </html>
