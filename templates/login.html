@@ -1,22 +1,73 @@
-<!-- templates/login.html -->
-<img src="/logo.png" style="width:60px; margin-bottom:15px; border-radius:12px;">
-<h2>Welcome to Titech AI</h2>
-<p style="opacity:.7;font-size:14px;">Sign in to continue</p>
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titech AI - Login</title>
+<style>
+ body{ background:#0a0a0f; color:white; display:flex; justify-content:center; align-items:center; height:100vh; font-family: sans-serif; }
+.card{ background:#14141f; padding:30px; border-radius:16px; width:90%; max-width:350px; text-align:center; box-shadow:0 0 20px rgba(168,85,247,0.3); border:1px solid rgba(168,85,247,0.2); }
+ input{ width:100%; padding:12px; margin:10px 0; border-radius:8px; border:1px solid #333; background:#0a0a0f; color:white; box-sizing:border-box; }
+ button{ width:100%; padding:12px; border-radius:8px; border:none; cursor:pointer; margin-top:10px; font-weight:bold; }
+.btn-primary{ background:linear-gradient(90deg,#a855f7,#ec4899); color:white; }
+.btn-sec{ background:#222; color:white; opacity:0.8; }
+ a{ color:#a855f7; font-size:13px; text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <img src="/logo.png" style="width:60px; margin-bottom:10px; border-radius:12px;">
+  <h2>Welcome to Titech AI</h2>
+  <p style="opacity:0.7; font-size:14px;">Sign in to continue</p>
 
-<input id="email" type="email" placeholder="Enter your email" style="width:100%;padding:12px;border-radius:10px;border:1px solid #444;background:#111;color:#fff;margin-top:15px;">
+  <input id="email" type="email" placeholder="Enter your email e.g titech@gmail.com">
+  <input id="username" type="text" placeholder="Enter your username (optional)">
 
-<button onclick="login()" style="width:100%;padding:12px;margin-top:12px;border-radius:10px;background:#7c3aed;color:white;border:0;font-weight:bold;cursor:pointer;">Continue</button>
+  <button class="btn-primary" onclick="login()">Sign in & Continue</button>
+  <button class="btn-sec" onclick="alert('Google login coming soon - use email for now')">Continue with Google</button>
+  <a href="#" onclick="alert('Contact Titech support on WhatsApp'); return false;" style="display:block; margin-top:15px;">Forgot password? Contact Support</a>
 
-<button onclick="alert('Google login coming soon - use email for now')" style="width:100%;padding:12px;margin-top:10px;border-radius:10px;background:#222;color:white;border:1px solid #444;cursor:pointer;">Continue with Google</button>
-
-<a href="#" onclick="alert('Contact Titech support');return false;" style="display:block;margin-top:12px;font-size:13px;opacity:.6;">Forgot password?</a>
+  <p id="status" style="font-size:12px; margin-top:10px; opacity:0.6;"></p>
+</div>
 
 <script>
 function login(){
- let e=document.getElementById('email').value.trim();
- if(!e ||!e.includes('@')){alert('Enter valid email');return;}
- localStorage.setItem('titech_email', e);
- localStorage.setItem('titech_name', e.split('@')[0]);
- window.location.href='/';
+  let emailEl = document.getElementById('email');
+  let nameEl = document.getElementById('username');
+  let e = emailEl.value.trim().toLowerCase();
+  let u = nameEl.value.trim();
+
+  if(!e){
+    alert('Please enter your email');
+    return;
+  }
+  if(!e.includes('@') ||!e.includes('.')){
+    alert('Enter valid email e.g name@gmail.com');
+    return;
+  }
+  // if username empty, use email prefix
+  if(!u){
+    u = e.split('@')[0];
+  }
+
+  // FIXED: Save with exact keys index.html expects
+  localStorage.setItem('titech_email', e);
+  localStorage.setItem('titech_name', u);
+  localStorage.setItem('titech_user', JSON.stringify({email:e, username:u, loginAt: new Date().toISOString()}));
+
+  document.getElementById('status').innerText = "Logging in...";
+
+  // small delay so user sees
+  setTimeout(()=>{
+    window.location.href = '/';
+  }, 400);
+}
+
+// If already logged in, go home
+let existing = localStorage.getItem('titech_email');
+if(existing && existing.includes('@')){
+  // auto redirect but allow user to change account if they want
+  console.log("Already logged as", existing);
 }
 </script>
+</body>
+</html>
