@@ -1,176 +1,134 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Titech AI</title>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<style>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
 *{box-sizing:border-box}
 body{
- margin:0;
- background:#070f1e;
- background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
- background-size:40px 40px;
- color:#fff;
- font-family:system-ui;
- display:flex;
- flex-direction:column;
- height:100vh;
- overflow:hidden;
+ margin:0; background:#07081a;
+ background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+ background-size:40px 40px; color:#fff; font-family:system-ui; display:flex; flex-direction:column; height:100vh; overflow:hidden;
 }
-.header{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;background:#0a162d;border-bottom:1px solid #1e293b;flex-shrink:0}
-.h-left{display:flex;align-items:center;gap:10px}
-.h-left img{width:38px;height:38px;border-radius:50%;object-fit:cover}
-.pill{margin-top:5px;display:inline-block;font-size:11px;background:#1e293b;padding:2px 8px;border-radius:12px}
-.icon-btn{width:38px;height:38px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;background:#1e293b;color:#fff}
-#chat{flex:1;overflow-y:auto;padding:16px;padding-bottom:140px;display:flex;flex-direction:column;gap:12px}
-.user-msg{max-width:78%;align-self:flex-end;background:#1e293b;padding:10px 14px;border-radius:16px}
-.ai-msg{max-width:85%;align-self:flex-start;background:#0f1f3a;padding:10px 14px;border-radius:16px;position:relative}
-.ai-msg img{max-width:90%;max-height:42vh;object-fit:contain;border-radius:12px;margin:8px auto;display:block}
-.copy-btn{position:absolute;top:8px;right:8px;font-size:11px;padding:4px 8px;border-radius:8px;border:none;background:#1e293b;color:#fff;cursor:pointer}
-.bottom-wrap{position:fixed;bottom:0;left:0;right:0;background:#070f1e;padding:12px 14px;padding-bottom:calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:8px;z-index:9999;border-top:1px solid #1e293b}
-.input-bar{width:100%;max-width:720px;min-height:52px;display:flex !important;flex-direction:row !important;align-items:center;gap:10px;background:#1e293b !important;border:1px solid #334155;border-radius:28px;padding:8px 12px;box-sizing:border-box}
-.input-bar input{flex:1;min-width:0;background:transparent !important;border:none !important;outline:none !important;color:#fff !important;font-size:16px}
-.small{font-size:10px;text-align:center;opacity:.5}
-#modalBg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100}
-#modal{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#0f1f3a;padding:20px;border-radius:16px;z-index:101;width:90%;max-width:340px}
-#greet{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1e293b;padding:8px 14px;border-radius:20px;font-size:13px;z-index:100}
-</style>
+.header{padding:14px 16px; display:flex; justify-content:space-between; align-items:center; background:rgba(15,15,30,0.8); backdrop-filter:blur(10px); border-bottom:1px solid rgba(168,85,247,0.15);}
+.h-left{display:flex; align-items:center; gap:10px;}
+.logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#a855f7,#ec4899);}
+.icon-btn{background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; width:36px; height:36px; border-radius:8px; cursor:pointer;}
+#chat{flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; padding-bottom:100px;}
+.user-msg{align-self:flex-end; background:linear-gradient(135deg,#7c3aed,#a855f7); padding:12px 16px; border-radius:18px 18px 4px 18px; max-width:80%; word-wrap:break-word;}
+.ai-msg{align-self:flex-start; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); padding:14px 16px; border-radius:18px 18px 18px 4px; max-width:85%; word-wrap:break-word;}
+.ai-msg img{max-width:100%; border-radius:12px; margin-top:8px;}
+.copy-btn{position:absolute; top:8px; right:8px; background:rgba(255,255,255,0.1); border:none; color:#fff; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;}
+.input-bar{position:fixed; bottom:0; left:0; right:0; padding:12px 12px 20px 12px; background:rgba(7,8,26,0.9); backdrop-filter:blur(20px); border-top:1px solid rgba(255,255,255,0.08); display:flex; gap:10px; align-items:center;}
+.input-bar input{flex:1; min-width:0; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:14px 16px; border-radius:24px; outline:none;}
+#sendBtn{background:linear-gradient(135deg,#a855f7,#ec4899); color:#fff; border:none; width:44px; height:44px; border-radius:50%; cursor:pointer; font-size:18px;}
+#modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100; justify-content:center; align-items:center;}
+.modal-box{background:#14141f; padding:20px; border-radius:16px; width:90%; max-width:360px; border:1px solid rgba(168,85,247,0.2);}
+select{width:100%; padding:10px; border-radius:8px; background:#0a0a0f; color:#fff; border:1px solid rgba(255,255,255,0.15); margin-top:8px;}
+.neon-badge{ display:flex; align-items:center; gap:6px; background:rgba(0,0,0,0.4); border:1px solid rgba(168,85,247,0.5); padding:6px 12px; border-radius:20px; font-size:12px; box-shadow:0 0 10px rgba(168,85,247,0.6), 0 0 20px rgba(236,72,153,0.3); animation:neonPulse 2s infinite alternate; }
+@keyframes neonPulse{ 0%{ box-shadow:0 0 8px rgba(168,85,247,0.5) } 100%{ box-shadow:0 0 14px rgba(168,85,247,0.9), 0 0 28px rgba(236,72,153,0.5) } }
+.thinking-box{ background:rgba(168,85,247,0.08); border-left:3px solid #a855f7; padding:10px 12px; border-radius:8px; margin-bottom:10px; font-size:13px; opacity:0.85; }
 </style>
 </head>
 <body>
-<div id="greet"></div>
-<div id="modalBg" onclick="closeM()"></div>
-<div class="header">
-<div class="h-left">
-<img src="/logo.png" alt="logo">
-<div><div style="font-weight:800;font-size:18px">Titech AI</div><div class="pill" id="pill">FRIENDLY</div></div>
-</div>
-<button class="icon-btn" onclick="openM()">☰</button>
-</div>
-
-<div id="modal">
-<h3 style="margin:0 0 8px">Settings ⚙️</h3>
-<div>Username: <b id="dName"></b></div>
-<div>Email: <b id="dEmail" style="font-size:12px"></b></div>
-<label style="margin-top:12px;display:block;font-size:13px">Tone:</label>
-<select id="toneSel" style="width:100%;padding:10px;border-radius:10px;margin-top:6px;background:#0f172a;color:#fff;border:1px solid rgba(255,255,255,0.1)">
-<option value="friendly">friendly</option>
-<option value="hype">hype</option>
-<option value="professional">professional</option>
-<option value="short">short</option>
-<option value="teacher">teacher</option>
-</select>
-<button onclick="saveT()" style="width:100%;margin-top:14px;padding:11px;border-radius:12px;background:#2563eb;color:#fff;border:none;font-weight:700">Save</button>
-<button onclick="closeM()" style="width:100%;margin-top:8px;padding:11px;border-radius:12px;background:rgba(255,255,255,0.08);color:#fff;border:none">Close</button>
-</div>
-
-<div id="chat">
-<div class="ai-msg">✨ Welcome to Titech AI! Ask me anything — polished and clear. I can make it more professional, friendly, or hype if you'd like! ✨ <button class="copy-btn" onclick="copyText(this)">Copy</button></div>
-</div>
-
-<div class="bottom-wrap">
-  <div class="input-bar">
-    <button class="icon-btn" onclick="openM()" style="width:32px;height:32px;border-radius:50%;border:1px solid #3a4a62;background:transparent;color:#fff;cursor:pointer;">+</button>
-    <input id="msg" placeholder="Ask AI anything..." onkeydown="if(event.key==='Enter')send()">
-    <button class="icon-btn" onclick="send()" style="width:32px;height:32px;border-radius:50%;background:#fff;color:#000;border:none;cursor:pointer;">↗</button>
+<div id="modal" onclick="closeM()"><div class="modal-box" onclick="event.stopPropagation()">
+  <div style="display:flex; justify-content:space-between;"><b>⚙️ Settings</b><span onclick="closeM()" style="cursor:pointer;">✕</span></div>
+  <div style="margin-top:16px;">
+    <label style="font-size:12px; opacity:0.8;">Email - idEmail</label>
+    <div id="idEmail" style="font-size:14px; margin-top:4px; padding:8px; background:rgba(255,255,255,0.05); border-radius:8px;"></div>
+    <label style="display:block; margin-top:16px; font-size:12px; opacity:0.8;">Tone</label>
+    <select id="personality" onchange="localStorage.setItem('titech_personality', this.value)">
+      <option value="friendly">😊 Friendly</option>
+      <option value="hyper">⚡ Hyper</option>
+      <option value="professional">👔 Professional</option>
+      <option value="teacher">📚 Teacher</option>
+      <option value="deepthink">🧠 Deep Thinking</option>
+    </select>
+    <div style="margin-top:16px; font-size:12px; opacity:0.7;">User: <span id="idUser"></span></div>
+    <button class="icon-btn" style="width:100%; margin-top:16px; height:auto; padding:10px;" onclick="logout()">Logout</button>
   </div>
-  <div class="small">Free tier · Privacy on · No training on your chats · friendly</div>
+</div></div>
+
+<div class="header">
+  <div class="h-left">
+    <img src="/logo.png" class="logo"><b>Titech AI</b>
+    <div id="viewBadge" class="neon-badge" style="margin-left:12px; display:none;"><span>👁️</span><span id="viewCount">...</span><span style="width:8px;height:8px;background:#00ff88;border-radius:50%;display:inline-block;margin-left:4px;box-shadow:0 0 6px #00ff88;"></span></div>
+  </div>
+  <button class="icon-btn" onclick="openM()">⚙️</button>
 </div>
+
+<div id="chat"><div class="ai-msg">👋 Welcome to Titech AI! I now remember our chats and can think deeply!</div></div>
+<div class="input-bar"><input id="msg" placeholder="Ask anything..." onkeydown="if(event.key==='Enter') send()"><button id="sendBtn" onclick="send()">↑</button></div>
 
 <script>
-let username = localStorage.getItem("titech_username") || localStorage.getItem("titech_name") || "User";
-let user_email = localStorage.getItem("titech_email") || "";
-let tone = localStorage.getItem("titech_tone") || "friendly";
-document.getElementById("dName").textContent=username;
-document.getElementById("dEmail").textContent=user_email;
-document.getElementById("pill").textContent=tone.toUpperCase();
-document.getElementById("toneSel").value=tone;
-document.getElementById("smallTone").textContent=tone;
-let g=document.getElementById("greet"); g.textContent="Welcome, "+username; g.style.display="block"; setTimeout(()=>g.style.display="none",3000);
+let titech_email = localStorage.getItem('titech_email');
+let titech_name = localStorage.getItem('titech_name');
+if(!titech_email || !titech_email.includes('@')){ window.location.href='/login'; }
+document.getElementById('idEmail').innerText = titech_email || 'guest';
+document.getElementById('idUser').innerText = titech_name || 'Boss';
 
-function openM(){document.getElementById("modal").style.display="block";document.getElementById("modalBg").style.display="block";}
-function closeM(){document.getElementById("modal").style.display="none";document.getElementById("modalBg").style.display="none";}
-function saveT(){tone=document.getElementById("toneSel").value;localStorage.setItem("titech_tone",tone);document.getElementById("pill").textContent=tone.toUpperCase();document.getElementById("smallTone").textContent=tone;closeM();}
+// ADMIN ONLY - Olajide Timileyin Samson
+const ADMIN_EMAIL = "olajidetimileyinsamson@gmail.com";
+if(titech_email && titech_email.toLowerCase() === ADMIN_EMAIL.toLowerCase()){
+  document.getElementById('viewBadge').style.display = 'flex';
+}
+
+document.getElementById('personality').value = localStorage.getItem('titech_personality') || 'friendly';
+function openM(){ document.getElementById('modal').style.display='flex'; }
+function closeM(){ document.getElementById('modal').style.display='none'; }
+function logout(){ localStorage.clear(); window.location.href='/login'; }
 
 function copyText(btn){
-  let txt=btn.parentElement.innerText.replace("Copied!","").replace("Copy","").trim();
-  navigator.clipboard.writeText(txt);
-  btn.textContent="Copied!"; setTimeout(()=>btn.textContent="Copy",1500);
+  let text = btn.getAttribute('data-copy');
+  let temp = document.createElement('div');
+  temp.innerHTML = text;
+  let clean = temp.innerText || temp.textContent;
+  navigator.clipboard.writeText(clean).then(()=>{
+    let old = btn.innerText;
+    btn.innerText = 'Copied!';
+    setTimeout(()=>btn.innerText = old, 1500);
+  }).catch(()=>{
+    let ta = document.createElement('textarea');
+    ta.value = clean;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    btn.innerText = 'Copied!';
+    setTimeout(()=>btn.innerText='Copy',1500);
+  });
 }
 
-function addMsg(text, cls, imageUrl=""){
-  let c=document.getElementById("chat");
-  let d=document.createElement("div");
-  d.className=cls;
-  d.style.cssText="position:relative;padding:14px 16px;padding-top:32px;margin-bottom:14px;border-radius:18px;max-width:85%;word-wrap:break-word;white-space:pre-wrap;background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;";
-  if(cls==="user-msg") d.style.cssText="background:#1e293b;color:#fff;padding:14px 16px;margin-bottom:14px;border-radius:18px;max-width:85%;margin-left:auto;word-wrap:break-word;";
-  let html=text;
-  if(imageUrl){
-    html+=`<br><img src="${imageUrl}" style="width:100%;max-width:380px;border-radius:12px;margin-top:10px;display:block;"><br><a href="${imageUrl}" download target="_blank" style="display:inline-block;margin-top:8px;padding:6px 12px;background:#fff;color:#000;border-radius:8px;text-decoration:none;font-weight:bold;">⬇ Save Image</a>`;
+function addMsg(text, cls, image_url){
+  let d=document.createElement('div'); d.className=cls; d.style.position='relative';
+  let html=marked.parse(text); let thinkingHTML='';
+  if(text.includes('<think>')){
+    let m=text.match(/<think>([\s\S]*?)<\/think>/);
+    if(m){ thinkingHTML=`<div class="thinking-box"><b>🧠 Thinking:</b><br>${marked.parse(m[1])}</div>`; html=html.replace(m[0],''); }
   }
-  d.innerHTML=`${html}<button onclick="navigator.clipboard.writeText('${text.replace(/'/g,"\\'")}')" style="position:absolute;top:6px;right:6px;font-size:11px;padding:3px 8px;border-radius:6px;border:none;cursor:pointer;">Copy</button>`;
-  c.appendChild(d);
-  c.scrollTop=c.scrollHeight;
+  let escaped = text.replace(/"/g,'&quot;');
+  d.innerHTML=thinkingHTML+html+(image_url?`<img src="${image_url}" loading="lazy">`:'')+`<button class="copy-btn" data-copy="${escaped}" onclick="copyText(this)">Copy</button>`;
+  document.getElementById('chat').appendChild(d);
+  document.getElementById('chat').scrollTop=document.getElementById('chat').scrollHeight;
 }
-  
+
 async function loadHistory(){
-  let user_email=localStorage.getItem("titech_email")||"";
-  if(!user_email) return;
-  try{
-    let r=await fetch(`/history?email=${user_email}`);
-    let data=await r.json();
-    data.forEach(m=>{
-      addMsg(m.message,"user-msg");
-      addMsg(m.reply,"ai-msg", m.image_url || "");
-    });
-  }catch(e){}
+  try{ if(!titech_email) return; let res=await fetch(`/history?email=${encodeURIComponent(titech_email)}`); let data=await res.json(); if(data&&data.length){ document.getElementById('chat').innerHTML=''; data.forEach(m=>{ addMsg(m.message,'user-msg',''); addMsg(m.reply,'ai-msg',m.image_url||''); }); } }catch(e){console.log(e);}
 }
-
-function addMsg(text, cls, imageUrl=""){
-  let c=document.getElementById("chat");
-  let d=document.createElement("div");
-  d.className=cls;
-  d.style.cssText="position:relative;padding:14px 16px;padding-top:32px;margin-bottom:14px;border-radius:18px;max-width:85%;word-wrap:break-word;white-space:pre-wrap;background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;";
-  if(cls==="user-msg") d.style.cssText="background:#1e293b;color:#fff;padding:14px 16px;margin-bottom:14px;border-radius:18px;max-width:85%;margin-left:auto;word-wrap:break-word;";
-  let html=text;
-  if(imageUrl){
-    html+=`<br><img src="${imageUrl}" style="width:100%;max-width:380px;border-radius:12px;margin-top:10px;display:block;"><br><a href="${imageUrl}" download target="_blank" style="display:inline-block;margin-top:8px;padding:6px 12px;background:#fff;color:#000;border-radius:8px;text-decoration:none;font-weight:bold;">⬇ Save Image</a>`;
-  }
-  d.innerHTML=`${html}<button onclick="navigator.clipboard.writeText('${text.replace(/'/g,"\\'")}')" style="position:absolute;top:6px;right:6px;font-size:11px;padding:3px 8px;border-radius:6px;border:none;cursor:pointer;">Copy</button>`;
-  c.appendChild(d);
-  c.scrollTop=c.scrollHeight;
-}
+async function fetchStats(){ try{ let r=await fetch('/stats'); let j=await r.json(); document.getElementById('viewCount').innerText=j.total_views+' 👥 '+j.total_chats; }catch{} }
+fetchStats(); setInterval(fetchStats,10000); loadHistory();
 
 async function send(){
-  let inp=document.getElementById("msg");
-  let t=inp.value.trim();
-  if(!t) return;
-  let c=document.getElementById("chat");
-  addMsg(t,"user-msg");
-  inp.value="";
-  document.querySelectorAll("[id^='typing-']").forEach(e=>e.remove());
-  let tid="typing-"+Date.now();
-  let td=document.createElement("div");
-  td.id=tid;
-  td.className="ai-msg";
-  td.style.cssText="padding:12px;margin-bottom:14px;opacity:0.7;background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;border-radius:18px;max-width:80%;";
-  td.innerText="Typing...";
-  c.appendChild(td);
-  c.scrollTop=c.scrollHeight;
+  let input=document.getElementById('msg'); let txt=input.value.trim(); if(!txt) return; addMsg(txt,'user-msg',''); input.value='';
+  let typingId='typing-'+Date.now(); let typingDiv=document.createElement('div'); typingDiv.id=typingId; typingDiv.className='ai-msg'; typingDiv.innerText='Titech AI is thinking...'; document.getElementById('chat').appendChild(typingDiv);
+  document.getElementById('chat').scrollTop=document.getElementById('chat').scrollHeight;
   try{
-    let r=await fetch("/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:t, personality:"friendly", username:localStorage.getItem("titech_username")||"Boss", user_email:localStorage.getItem("titech_email")||""})});
-    let d=await r.json();
-    document.getElementById(tid)?.remove();
-    addMsg(d.reply,"ai-msg", d.image_url || "");
-  }catch(e){
-    document.getElementById(tid)?.remove();
-    addMsg("Network error Boss, try again 🙏","ai-msg");
-  }
+    let res=await fetch('/chat',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:txt, username:titech_name||'Boss', user_email:titech_email, personality:document.getElementById('personality').value||'friendly'})});
+    let data=await res.json(); document.getElementById(typingId).remove(); addMsg(data.reply||'Error','ai-msg',data.image_url||'');
+  }catch(e){ document.getElementById(typingId).remove(); addMsg('Network error Boss, try again ⚡','ai-msg',''); }
 }
-document.getElementById("msg").addEventListener("keydown",e=>{if(e.key==="Enter") send()});
-loadHistory();
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadHistory(); });
 </script>
 </body>
 </html>
