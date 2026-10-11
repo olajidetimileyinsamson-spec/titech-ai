@@ -6,51 +6,45 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{ box-sizing:border-box; font-family:'Inter', sans-serif }
-body{ background:#08080c; color:white; display:flex; justify-content:center; align-items:center; min-height:100vh; margin:0; }
-.card{ background:linear-gradient(180deg,#14141f 0%,#10101a 100%); padding:36px 32px; border-radius:20px; max-width:400px; width:92%; border:1px solid rgba(255,255,255,0.08); box-shadow:0 20px 60px rgba(0,0,0,0.6) }
-.logo{ width:52px; height:52px; margin:0 auto 18px; display:block; border-radius:14px; background:#1a1a2e; object-fit:cover }
-h2{ text-align:center; font-weight:600; font-size:22px; margin:0 0 6px; letter-spacing:-0.3px }
-.sub{ text-align:center; opacity:0.55; font-size:13.5px; margin-bottom:22px; line-height:1.5 }
-label{ font-size:12px; opacity:0.7; margin:14px 0 6px; display:block; font-weight:500; letter-spacing:0.2px }
-input{ width:100%; padding:13px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:#1a1a26; color:white; font-size:14px; outline:none; transition:0.2s }
-input:focus{ border-color:#6a5af9; background:#1e1e30; }
+body{ background:#08080c; color:white; display:flex; justify-content:center; align-items:center; min-height:100vh; margin:0; padding:16px }
+.card{ background:#14141f; padding:32px; border-radius:20px; max-width:400px; width:100%; border:1px solid rgba(255,255,255,0.08); }
+.logo{ width:52px; height:52px; margin:0 auto 18px; display:block; border-radius:14px; background:#1a1a2e }
+h2{ text-align:center; font-weight:600; font-size:22px; margin:0 0 6px }
+.sub{ text-align:center; opacity:0.55; font-size:13.5px; margin-bottom:22px }
+label{ font-size:12px; opacity:0.7; margin:14px 0 6px; display:block; font-weight:500 }
+input{ width:100%; padding:13px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:#1a1a26; color:white; font-size:14px; outline:none }
+input:focus{ border-color:#6a5af9; }
 .pw-wrap{ position:relative; }
 .pw-wrap input{ padding-right:44px }
-.eye-btn{ position:absolute; right:6px; top:50%; transform:translateY(-50%); background:transparent; border:none; cursor:pointer; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:8px; opacity:0.6; transition:0.2s }
-.eye-btn:hover{ opacity:1; background:rgba(255,255,255,0.06) }
+.eye-btn{ position:absolute; right:6px; top:50%; transform:translateY(-50%); background:transparent; border:none; cursor:pointer; width:36px; height:36px; display:flex; align-items:center; justify-content:center; opacity:0.6 }
 .eye-btn svg{ width:18px; height:18px; stroke:white; fill:none; stroke-width:1.7 }
-.btn-primary{ width:100%; padding:13px; border-radius:10px; border:none; background:white; color:black; font-weight:600; font-size:14px; cursor:pointer; margin-top:20px; transition:0.2s }
-.btn-primary:hover{ background:#e9e9e9; transform:translateY(-1px) }
-.btn-sec{ width:100%; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,0.08); background:transparent; color:white; opacity:0.5; margin-top:10px; font-size:12.5px; cursor:pointer }
-#status{ font-size:12.5px; margin-top:12px; opacity:0.6; text-align:center; min-height:18px }
-.footer{ font-size:11px; margin-top:18px; opacity:0.35; text-align:center }
+.btn-primary{ width:100%; padding:13px; border-radius:10px; border:none; background:white; color:black; font-weight:600; font-size:14px; cursor:pointer; margin-top:20px }
+#status{ font-size:12px; margin-top:12px; opacity:0.6; text-align:center; min-height:18px }
 </style>
 </head>
 <body>
 <div class="card">
-<img src="/logo.png" class="logo" alt="Titech">
+<img src="/logo.png" class="logo" alt="">
 <h2>Welcome to Titech AI</h2>
-<p class="sub">Sign in to continue. Your conversations are private to your account.</p>
+<p class="sub">Sign in to continue. Your conversations are private.</p>
 
 <label>Email</label>
-<input id="email" type="email" placeholder="you@example.com" autocomplete="email">
+<input id="email" type="email" placeholder="you@example.com">
 
 <label>Username</label>
 <input id="username" type="text" placeholder="Optional">
 
 <label>Password</label>
 <div class="pw-wrap">
-  <input id="password" type="password" placeholder="Minimum 6 characters" autocomplete="current-password">
-  <button type="button" class="eye-btn" onclick="togglePw()" id="eyeBtn" aria-label="Show password">
+  <input id="password" type="password" placeholder="Minimum 6 characters">
+  <button type="button" class="eye-btn" onclick="togglePw()" id="eyeBtn">
     <svg id="eyeOpen" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
     <svg id="eyeClosed" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.53 9.53a3 3 0 1 0 4.27 4.27"/><path d="M14.07 14.07L9.93 9.93M1 1l22 22"/></svg>
   </button>
 </div>
 
-<button class="btn-primary" onclick="login()">Continue</button>
-<button class="btn-sec" onclick="alert('Google login coming soon')">Continue with Google — coming soon</button>
+<button type="button" class="btn-primary" id="loginBtn" onclick="doLogin()">Continue</button>
 <p id="status"></p>
-<p class="footer">Secure login • Contact support if you forget your password</p>
 </div>
 
 <script>
@@ -61,12 +55,43 @@ function togglePw(){
   if(p.type==='password'){ p.type='text'; open.style.display='none'; closed.style.display='block'; }
   else{ p.type='password'; open.style.display='block'; closed.style.display='none'; }
 }
-function login(){
-  let email=document.getElementById('email').value.trim();
+
+function doLogin(){
+  let email=document.getElementById('email').value.trim().toLowerCase();
   let username=document.getElementById('username').value.trim() || email.split('@')[0];
   let password=document.getElementById('password').value.trim();
+  let status=document.getElementById('status');
 
-  if(!email){ alert('Please enter your email'); return; }
-  if(!email.includes('@') ||!email.includes('.')){ alert('Please enter a valid email'); return; }
-  if(!password){ alert('Please enter password'); return; }
-  if(password.length<6){ alert('Password must be at least 6 characters'); return;
+  if(!email){ status.innerText='Please enter email'; return; }
+  if(!email.includes('@')){ status.innerText='Enter valid email'; return; }
+  if(!password){ status.innerText='Please enter password'; return; }
+  if(password.length<6){ status.innerText='Password must be 6+ chars'; return; }
+
+  status.innerText='Signing you in...';
+
+  // Clear old bad format once before saving
+  localStorage.removeItem('titech_email_full');
+
+  // SAVE - this format matches your index.html
+  localStorage.setItem('titech_email', email);
+  localStorage.setItem('titech_user', username);
+  localStorage.setItem('titech_email_full', JSON.stringify({email:email, username:username, password:password, loginAt: new Date().toISOString()}));
+
+  setTimeout(function(){ window.location.href='/'; }, 400);
+}
+
+// Check if already logged in - compatible with old and new format
+let saved = localStorage.getItem('titech_email');
+if(saved){
+  try{
+    // If old format was JSON, extract email
+    if(saved.startsWith('{')){ saved = JSON.parse(saved).email; }
+  }catch(e){}
+  if(saved && saved.includes('@')){
+    // Don't auto-clear, just go home
+    // window.location.href='/'; // uncomment if you want auto redirect
+  }
+}
+</script>
+</body>
+</html>
