@@ -83,19 +83,27 @@ function closeM(){document.getElementById('modal').style.display='none'}
 function logout(){localStorage.clear();location.href='/login'}
 
 function addMsg(text, cls, imgUrl){
-  if(!text || text.trim()==='') text='Sorry Boss, try again — I be Titech AI built by Olajide Timileyin Samson';
+  if(!text || text.trim()==='') text='Sorry Boss, no reply';
   let c=document.getElementById('chat');
   let d=document.createElement('div'); d.className=cls;
   let html; try{ html=marked.parse(text); }catch{ html=text; }
-  d.innerHTML=html+(imgUrl?`<br><img src="${imgUrl}" style="max-width:100%;border-radius:12px;margin-top:8px">`:'');
+  let btns='';
+  if(imgUrl){
+    btns=`<div style="margin-top:8px;display:flex;gap:8px"><button onclick="copyT(this)" style="padding:6px 12px;border-radius:20px;border:1px solid #a855f7;background:rgba(168,85,247,0.15);color:white;font-size:11px">📋 Copy</button><button onclick="saveImg('${imgUrl}')" style="padding:6px 12px;border-radius:20px;border:1px solid #22c55e;background:rgba(34,197,94,0.15);color:white;font-size:11px">💾 Save</button></div>`;
+  }else{
+    btns=`<div style="margin-top:8px"><button onclick="copyT(this)" style="padding:6px 12px;border-radius:20px;border:1px solid #a855f7;background:rgba(168,85,247,0.15);color:white;font-size:11px">📋 Copy</button></div>`;
+  }
+  d.innerHTML=html+(imgUrl?`<br><img src="${imgUrl}" style="max-width:100%;border-radius:12px;margin-top:8px">`:'')+btns;
   c.appendChild(d); c.scrollTop=c.scrollHeight;
 }
+function copyT(b){ let t=b.parentElement.parentElement.innerText.replace('📋 Copy','').replace('💾 Save',''); navigator.clipboard.writeText(t); b.innerText='Copied ✓'; setTimeout(()=>b.innerText='📋 Copy',1500); }
+function saveImg(u){ let a=document.createElement('a'); a.href=u; a.download='titech-'+Date.now()+'.png'; a.target='_blank'; a.click(); }
 async function loadHistory(){
- try{ let r=await fetch(`/history?email=${encodeURIComponent(titech_email)}`); let data=await r.json(); if(data && data.length>0){ document.getElementById('chat').innerHTML=''; data.forEach(m=>{ addMsg(m.message,'user-bubble',''); addMsg(m.reply,'ai-bubble',m.image_url||''); }); } }catch(e){ console.log(e); }
-}
-async function fetchStats(){ try{ let r=await fetch('/stats'); let j=await r.json(); document.getElementById('viewCount').innerText=(j.total_views||0)+' views | '+(j.total_chats||0)+' chats'; }catch{} }
-loadHistory(); fetchStats();
-async function send(){
+    try{ let r=await fetch(`/history?email=${encodeURIComponent(titech_email)}`); let data=await r.json(); if(data && data.length>0){ document.getElementById('chat').innerHTML=''; data.forEach(m=>{ addMsg(m.message,'user-bubble',''); addMsg(m.reply,'ai-bubble',m.image_url); }); } }catch(e){}
+  }
+ async function fetchStats(){ try{ let r=await fetch('/stats'); let j=await r.json(); let vb=document.getElementById('viewBadge'); let vc=document.getElementById('viewCount'); if(vb&&vc){ vb.style.display='inline-flex'; vc.innerText=(j.total_views||0)+' views'; } }catch(e){} }
+  loadHistory(); fetchStats();
+ async function send(){
  let input=document.getElementById('msg'); let txt=input.value.trim(); if(!txt) return;
  addMsg(txt,'user-bubble',''); input.value='';
  let id='t'+Date.now(); let typing=document.createElement('div'); typing.id=id; typing.className='ai-bubble'; typing.innerText='Titech AI is thinking...'; document.getElementById('chat').appendChild(typing); document.getElementById('chat').scrollTop=document.getElementById('chat').scrollHeight;
