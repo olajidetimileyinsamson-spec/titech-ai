@@ -153,7 +153,7 @@ def chat():
         except Exception as e:
             print(f"memory error: {e}")
 
-                        external_context = data.get("context") or data.get("store_data")
+           external_context = data.get("context") or data.get("store_data")
         context = ""
         if external_context:
             context = str(external_context)[:2000]
