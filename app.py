@@ -157,7 +157,7 @@ def chat():
         if not external_context:
             external_context = data.get("store_data")
         context = ""
-        if external_context:
+            if external_context:
             context = str(external_context)[:2000]
         else:
             live_results = None
@@ -172,7 +172,7 @@ def chat():
                 live_results = None
 
             # Backup WEEK
-        if not live_results:
+            if not live_results:
                 try:
                     if tavily_client and len(user_message) > 5:
                         r = tavily_client.search(query=user_message, max_results=3, search_depth="basic", time_range="week", include_answer=True)
@@ -182,7 +182,7 @@ def chat():
                     print(f"tavily week error: {e}")
 
             # Last backup NO time_range (for free quota)
-         if not live_results:
+            if not live_results:
                 try:
                     if tavily_client and len(user_message) > 5:
                         r = tavily_client.search(query=user_message, max_results=3, search_depth="basic", include_answer=True)
@@ -191,10 +191,10 @@ def chat():
                 except Exception as e:
                     print(f"tavily no-range error: {e}")
 
-            if live_results and live_results.get("results"):
+        if live_results and live_results.get("results"):
                 context = "\n".join([x.get("content","")[:600] for x in live_results["results"][:3]])
                 print(f"Got live context: {len(context)} chars")
-            else:
+        else:
                 print("No live results - Tavily empty or key issue")
                 context = ""
 
