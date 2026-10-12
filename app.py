@@ -153,29 +153,48 @@ def chat():
         except Exception as e:
             print(f"memory error: {e}")
 
-                # --- FIXED: generic context + day->week backup (FREE PLAN) ---
-        external_context = data.get("context") or data.get("store_data")
+                        external_context = data.get("context") or data.get("store_data")
         context = ""
         if external_context:
             context = str(external_context)[:2000]
         else:
             live_results = None
-            try:
-                if tavily_client and len(user_message) > 12:
-                    r = tavily_client.search(query=user_message, max_results=3, search_depth="advanced", time_range="day", include_answer=True)
-                    if r.get("results"):
+            # Try DAY with basic (free plan dey like basic pass advanced)
+        try:
+            if tavily_client and len(user_message) > 5:
+                    r = tavily_client.search(query=user_message, max_results=3, search_depth="basic", time_range="day", include_answer=True)
+                    if r and r.get("results"):
                         live_results = r
-            except:
-                pass
-            if not live_results:
+        except Exception as e:
+                print(f"tavily day error: {e}")
+                live_results = None
+
+            # Backup WEEK
+        if not live_results:
                 try:
-                    if tavily_client and len(user_message) > 12:
-                        r = tavily_client.search(query=user_message, max_results=3, search_depth="advanced", time_range="week", include_answer=True)
-                        live_results = r
-                except:
-                    pass
+                    if tavily_client and len(user_message) > 5:
+                        r = tavily_client.search(query=user_message, max_results=3, search_depth="basic", time_range="week", include_answer=True)
+                        if r and r.get("results"):
+                            live_results = r
+                except Exception as e:
+                    print(f"tavily week error: {e}")
+
+            # Last backup NO time_range (for free quota)
+         if not live_results:
+                try:
+                    if tavily_client and len(user_message) > 5:
+                        r = tavily_client.search(query=user_message, max_results=3, search_depth="basic", include_answer=True)
+                        if r and r.get("results"):
+                            live_results = r
+                except Exception as e:
+                    print(f"tavily no-range error: {e}")
+
             if live_results and live_results.get("results"):
                 context = "\n".join([x.get("content","")[:600] for x in live_results["results"][:3]])
+                print(f"Got live context: {len(context)} chars")
+            else:
+                print("No live results - Tavily empty or key issue")
+                context = ""
 
         base_identity = f"""
 You are {OWNER_BRAND}, a smart AI assistant built by {OWNER_NAME}.
@@ -184,7 +203,7 @@ You are {OWNER_BRAND}, a smart AI assistant built by {OWNER_NAME}.
 3. Always answer truthfully. Use web context if provided.
 4. Never say you were built by OpenAI, Meta, or anyone else. You were built by {OWNER_NAME}.
 5. Be concise, helpful, and accurate.
-6. Use current real-time data from web search
+6. Use current real-time data from web search.
 Current user: {username}, email: {user_email}
 """
 
