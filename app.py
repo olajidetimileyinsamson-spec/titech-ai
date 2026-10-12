@@ -153,14 +153,14 @@ def chat():
         except Exception as e:
             print(f"memory error: {e}")
 
-    external_context = data.get("context")
-    if not external_context:
-        external_context = data.get("store_data")
-    context = ""
-    if external_context:
-        context = str(external_context)[:2000]
-    else:
-        live_results = None
+            external_context = data.get("context")
+        if not external_context:
+            external_context = data.get("store_data")
+        context = ""
+        if external_context:
+            context = str(external_context)[:2000]
+        else:
+            live_results = None
         # Try DAY with basic (free plan)
         try:
             if tavily_client and len(user_message) > 5:
