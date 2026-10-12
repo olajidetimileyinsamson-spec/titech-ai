@@ -10,16 +10,16 @@ from supabase import create_client
 app = Flask(__name__, template_folder="templates")
 CORS(app)
 
-# ===== OWNER FACTS - Olajide Timileyin Samson =====
+# ===== OWNER FACTS =====
 OWNER_NAME = "Olajide Timileyin Samson"
 OWNER_WHATSAPP = "+234 9025606097"
 OWNER_TIKTOK_FB = "titechnigeria01"
 OWNER_BRAND = "Titech AI"
 OWNER_EMAIL = "olajidetimileyinsamson@gmail.com"
-# ===================================================
 
 groq_api_key = os.getenv("GROQ_API_KEY")
 client = Groq(api_key=groq_api_key) if groq_api_key else None
+groq_client = client
 
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
@@ -27,6 +27,7 @@ supabase = create_client(supabase_url, supabase_key) if supabase_url and supabas
 
 tavily_key = os.getenv("TAVILY_API_KEY")
 tavily = TavilyClient(api_key=tavily_key) if tavily_key else None
+tavily_client = tavily
 
 @app.route("/")
 def home():
@@ -77,21 +78,6 @@ def history():
         print(f"history error: {e}")
         return jsonify([])
 
-@app.route("/admin-titech-2024")
-def admin_page():
-    return f"""
-    <html><head><title>Titech Admin</title><meta name="viewport" content="width=device-width, initial-scale=1"></head>
-    <body style="background:#07081a;color:white;font-family:system-ui;padding:30px;text-align:center;">
-    <h1>Titech AI Admin - {OWNER_NAME}</h1>
-    <p>WhatsApp: {OWNER_WHATSAPP} | TikTok/FB: {OWNER_TIKTOK_FB}</p>
-    <div id="stats" style="margin-top:30px;background:rgba(255,255,255,0.07);padding:20px;border-radius:15px;border:1px solid rgba(168,85,247,0.3)">Loading...</div>
-    <script>
-    async function load(){{ try{{ let r=await fetch('/stats'); let j=await r.json(); document.getElementById('stats').innerHTML=`Chats: ${{j.total_chats}}<br>Views: ${{j.total_views}}<br>Status: ${{j.status}}`; }}catch(e){{}} }}
-    load(); setInterval(load,5000);
-    </script>
-    </body></html>
-    """
-
 @app.route("/save-user", methods=["POST"])
 def save_user():
     try:
@@ -121,7 +107,6 @@ def chat():
             username = "Boss"
 
         lower_msg = user_message.lower()
-
         image_keywords = ["generate image", "create image", "create an image", "draw", "generate a picture", "create picture"]
         is_image = any(k in lower_msg for k in image_keywords)
         if is_image:
@@ -153,24 +138,29 @@ def chat():
         except Exception as e:
             print(f"memory error: {e}")
 
-            external_context = data.get("context")
-        if not external_context:
-            external_context = data.get("store_data")
+        # --- Titech OS context (external) ---
+        external_context = None
+        live_results = None
         context = ""
-        if external_context:
-            context = str(external_context)[:2000]
-        else:
-            live_results = None
-        # Try DAY with basic (free plan)
         try:
-            if tavily_client and len(user_message) > 5:
+            external_context = data.get("context")
+            if not external_context:
+                external_context = data.get("store_data")
+            if external_context:
+                context = str(external_context)[:2000]
+        except:
+            pass
+
+        # Try DAY with basic
+        try:
+            if tavily_client and len(user_message) > 5 and not context:
                 r = tavily_client.search(query=user_message, max_results=3, search_depth="basic", time_range="day")
                 if r and r.get("results"):
                     live_results = r
         except Exception as e:
             print(f"tavily day error: {e}")
         # Backup WEEK
-        if not live_results:
+        if not live_results and not context:
             try:
                 if tavily_client and len(user_message) > 5:
                     r = tavily_client.search(query=user_message, max_results=3, search_depth="basic", time_range="week")
@@ -179,7 +169,7 @@ def chat():
             except Exception as e:
                 print(f"tavily week error: {e}")
         # Last backup NO time_range
-        if not live_results:
+        if not live_results and not context:
             try:
                 if tavily_client and len(user_message) > 5:
                     r = tavily_client.search(query=user_message, max_results=3, search_depth="basic")
@@ -187,12 +177,11 @@ def chat():
                         live_results = r
             except Exception as e:
                 print(f"tavily no-range error: {e}")
-        if live_results and live_results.get("results"):
+        if live_results and live_results.get("results") and not context:
             context = "\n".join([x.get("content","")[:500] for x in live_results.get("results",[])[:3]])
             print(f"Got live context: {len(context)} chars")
-        else:
+        elif not context:
             print("No live results - Tavily empty or key issue")
-            context = ""
 
         base_identity = f"""
 You are {OWNER_BRAND}, a smart AI assistant built by {OWNER_NAME}.
@@ -215,7 +204,7 @@ Current user: {username}, email: {user_email}
             system_prompt = base_identity + f"\nMode: Speak in Naija pidgin + English mix, street smart, energetic, like correct Lagos guy. Use pidgin small small. Web context: {context}"
         elif personality == "genz":
             system_prompt = base_identity + f"\nMode: Gen Z slang - no cap, fr, slay, vibe, bussin, use emojis plenty. Web context: {context}"
-        else:  # friendly
+        else:
             system_prompt = base_identity + f"\nMode: Friendly, warm, concise, small emojis. Web context: {context}"
 
         messages = [{"role": "system", "content": system_prompt}]
@@ -239,7 +228,8 @@ Current user: {username}, email: {user_email}
     except Exception as e:
         print(f"chat error: {e}")
         return jsonify({"reply": f"Error: {str(e)}"}), 500
-        # --- OS EXTENSION - for anyone ---
+
+# --- TITech OS API ---
 @app.route("/os")
 def os_dashboard():
     return jsonify({"name": "Titech OS", "docs": "/docs", "api": "/v1/chat/completions", "status": "online"})
@@ -258,14 +248,14 @@ def v1_completions():
         try:
             r = tavily_client.search(query=q, max_results=3, time_range="day", include_answer=True)
             if r.get("results"):
-                context = "\n".join([x.get("content","")[:500] for x in r["results"][:3]])
-        except:
-            pass
+                context = "\n".join([x.get("content","")[:500] for x in r.get("results",[])[:3]])
+        except Exception as e2:
+            print(f"tavily os day error: {e2}")
         if not context:
             try:
                 r = tavily_client.search(query=q, max_results=3, time_range="week", include_answer=True)
                 if r.get("results"):
-                    context = "\n".join([x.get("content","")[:500] for x in r["results"][:3]])
+                    context = "\n".join([x.get("content","")[:500] for x in r.get("results",[])[:3]])
             except:
                 pass
     prompt = f"Context: {context}\nQuestion: {q}" if context else q
@@ -275,6 +265,7 @@ def v1_completions():
     except Exception as e:
         ans = f"Error: {e}"
     return jsonify({"choices":[{"message":{"content":ans}}]})
+    
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 10000))
