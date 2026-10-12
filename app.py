@@ -153,7 +153,7 @@ def chat():
         except Exception as e:
             print(f"memory error: {e}")
 
-        external_context = data.get("context")
+                external_context = data.get("context")
         if not external_context:
             external_context = data.get("store_data")
         context = ""
@@ -161,40 +161,36 @@ def chat():
             context = str(external_context)[:2000]
         else:
             live_results = None
-            # Try DAY with basic (free plan dey like basic pass advanced)
-        try:
-            if tavily_client and len(user_message) > 5:
-                    r = tavily_client.search(query=user_message, max_results=3, search_depth="basic", time_range="day", include_answer=True)
+            # Try DAY with basic (free plan like basic pass advanced)
+            try:
+                if tavily_client and len(user_message) > 5:
+                    r = tavily_client.search(query=user_message, max_results=3, search_depth="basic", time_range="day")
                     if r and r.get("results"):
                         live_results = r
-        except Exception as e:
+            except Exception as e:
                 print(f"tavily day error: {e}")
-                live_results = None
-
             # Backup WEEK
             if not live_results:
                 try:
                     if tavily_client and len(user_message) > 5:
-                        r = tavily_client.search(query=user_message, max_results=3, search_depth="basic", time_range="week", include_answer=True)
+                        r = tavily_client.search(query=user_message, max_results=3, search_depth="basic", time_range="week")
                         if r and r.get("results"):
                             live_results = r
                 except Exception as e:
                     print(f"tavily week error: {e}")
-
-            # Last backup NO time_range (for free quota)
+            # Last backup NO time_range
             if not live_results:
                 try:
                     if tavily_client and len(user_message) > 5:
-                        r = tavily_client.search(query=user_message, max_results=3, search_depth="basic", include_answer=True)
+                        r = tavily_client.search(query=user_message, max_results=3, search_depth="basic")
                         if r and r.get("results"):
                             live_results = r
                 except Exception as e:
                     print(f"tavily no-range error: {e}")
-
-        if live_results and live_results.get("results"):
-                context = "\n".join([x.get("content","")[:600] for x in live_results["results"][:3]])
+            if live_results and live_results.get("results"):
+                context = "\n".join([x.get("content","")[:500] for x in live_results.get("results",[])[:3]])
                 print(f"Got live context: {len(context)} chars")
-        else:
+            else:
                 print("No live results - Tavily empty or key issue")
                 context = ""
 
