@@ -153,46 +153,46 @@ def chat():
         except Exception as e:
             print(f"memory error: {e}")
 
-                external_context = data.get("context")
-        if not external_context:
-            external_context = data.get("store_data")
-        context = ""
-        if external_context:
-            context = str(external_context)[:2000]
-        else:
-            live_results = None
-            # Try DAY with basic (free plan like basic pass advanced)
+    external_context = data.get("context")
+    if not external_context:
+        external_context = data.get("store_data")
+    context = ""
+    if external_context:
+        context = str(external_context)[:2000]
+    else:
+        live_results = None
+        # Try DAY with basic (free plan)
+        try:
+            if tavily_client and len(user_message) > 5:
+                r = tavily_client.search(query=user_message, max_results=3, search_depth="basic", time_range="day")
+                if r and r.get("results"):
+                    live_results = r
+        except Exception as e:
+            print(f"tavily day error: {e}")
+        # Backup WEEK
+        if not live_results:
             try:
                 if tavily_client and len(user_message) > 5:
-                    r = tavily_client.search(query=user_message, max_results=3, search_depth="basic", time_range="day")
+                    r = tavily_client.search(query=user_message, max_results=3, search_depth="basic", time_range="week")
                     if r and r.get("results"):
                         live_results = r
             except Exception as e:
-                print(f"tavily day error: {e}")
-            # Backup WEEK
-            if not live_results:
-                try:
-                    if tavily_client and len(user_message) > 5:
-                        r = tavily_client.search(query=user_message, max_results=3, search_depth="basic", time_range="week")
-                        if r and r.get("results"):
-                            live_results = r
-                except Exception as e:
-                    print(f"tavily week error: {e}")
-            # Last backup NO time_range
-            if not live_results:
-                try:
-                    if tavily_client and len(user_message) > 5:
-                        r = tavily_client.search(query=user_message, max_results=3, search_depth="basic")
-                        if r and r.get("results"):
-                            live_results = r
-                except Exception as e:
-                    print(f"tavily no-range error: {e}")
-            if live_results and live_results.get("results"):
-                context = "\n".join([x.get("content","")[:500] for x in live_results.get("results",[])[:3]])
-                print(f"Got live context: {len(context)} chars")
-            else:
-                print("No live results - Tavily empty or key issue")
-                context = ""
+                print(f"tavily week error: {e}")
+        # Last backup NO time_range
+        if not live_results:
+            try:
+                if tavily_client and len(user_message) > 5:
+                    r = tavily_client.search(query=user_message, max_results=3, search_depth="basic")
+                    if r and r.get("results"):
+                        live_results = r
+            except Exception as e:
+                print(f"tavily no-range error: {e}")
+        if live_results and live_results.get("results"):
+            context = "\n".join([x.get("content","")[:500] for x in live_results.get("results",[])[:3]])
+            print(f"Got live context: {len(context)} chars")
+        else:
+            print("No live results - Tavily empty or key issue")
+            context = ""
 
         base_identity = f"""
 You are {OWNER_BRAND}, a smart AI assistant built by {OWNER_NAME}.
