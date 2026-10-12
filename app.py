@@ -157,7 +157,7 @@ def chat():
         if not external_context:
             external_context = data.get("store_data")
         context = ""
-            if external_context:
+        if external_context:
             context = str(external_context)[:2000]
         else:
             live_results = None
