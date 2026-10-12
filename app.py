@@ -153,13 +153,29 @@ def chat():
         except Exception as e:
             print(f"memory error: {e}")
 
-        try:
-            if tavily and len(user_message) > 12:
-                search = tavily.search(query=user_message, max_results=5, search_depth="advanced", time_range="week", include_answer=True)
-                if search and search.get("results"):
-                    context = "\n".join([r.get("content","")[:600] for r in search["results"][:3]])
-        except:
-            pass
+                # --- FIXED: generic context + day->week backup (FREE PLAN) ---
+        external_context = data.get("context") or data.get("store_data")
+        context = ""
+        if external_context:
+            context = str(external_context)[:2000]
+        else:
+            live_results = None
+            try:
+                if tavily_client and len(user_message) > 12:
+                    r = tavily_client.search(query=user_message, max_results=3, search_depth="advanced", time_range="day", include_answer=True)
+                    if r.get("results"):
+                        live_results = r
+            except:
+                pass
+            if not live_results:
+                try:
+                    if tavily_client and len(user_message) > 12:
+                        r = tavily_client.search(query=user_message, max_results=3, search_depth="advanced", time_range="week", include_answer=True)
+                        live_results = r
+                except:
+                    pass
+            if live_results and live_results.get("results"):
+                context = "\n".join([x.get("content","")[:600] for x in live_results["results"][:3]])
 
         base_identity = f"""
 You are {OWNER_BRAND}, a smart AI assistant built by {OWNER_NAME}.
@@ -206,6 +222,42 @@ Current user: {username}, email: {user_email}
     except Exception as e:
         print(f"chat error: {e}")
         return jsonify({"reply": f"Error: {str(e)}"}), 500
+        # --- OS EXTENSION - for anyone ---
+@app.route("/os")
+def os_dashboard():
+    return jsonify({"name": "Titech OS", "docs": "/docs", "api": "/v1/chat/completions", "status": "online"})
+
+@app.route("/docs")
+def docs():
+    return "<h2>Titech OS API</h2><p>POST /v1/chat/completions</p><p>Body: {\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}], \"context\":\"optional external data\"}</p><p>If context is sent, Tavily is skipped.</p>"
+
+@app.route("/v1/chat/completions", methods=["POST"])
+def v1_completions():
+    body = request.get_json()
+    q = body.get("messages", [{}])[-1].get("content","") if body and body.get("messages") else ""
+    external_context = body.get("context") or body.get("store_data") if body else None
+    context = str(external_context)[:2000] if external_context else ""
+    if not context and tavily_client:
+        try:
+            r = tavily_client.search(query=q, max_results=3, time_range="day", include_answer=True)
+            if r.get("results"):
+                context = "\n".join([x.get("content","")[:500] for x in r["results"][:3]])
+        except:
+            pass
+        if not context:
+            try:
+                r = tavily_client.search(query=q, max_results=3, time_range="week", include_answer=True)
+                if r.get("results"):
+                    context = "\n".join([x.get("content","")[:500] for x in r["results"][:3]])
+            except:
+                pass
+    prompt = f"Context: {context}\nQuestion: {q}" if context else q
+    try:
+        comp = groq_client.chat.completions.create(model="openai/gpt-oss-120b", messages=[{"role":"user","content":prompt}], max_tokens=600)
+        ans = comp.choices[0].message.content
+    except Exception as e:
+        ans = f"Error: {e}"
+    return jsonify({"choices":[{"message":{"content":ans}}]})
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 10000))
