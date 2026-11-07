@@ -1,115 +1,1397 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Titech AI</title>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#02040f;color:#fff;font-family:system-ui,-apple-system,sans-serif;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;position:relative}
-body::before{content:"";position:fixed;inset:0;background:linear-gradient(rgba(0,255,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,255,0.04) 1px,transparent 1px),radial-gradient(circle at 20% 30%,rgba(99,102,241,0.15),transparent 40%),radial-gradient(circle at 80% 80%,rgba(6,182,212,0.12),transparent 40%);background-size:50px 50px,50px 50px,100% 100%,100% 100%;z-index:-1}
-body::after{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,255,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,0.05) 1px,transparent 1px);background-size:30px 30px,30px 30px;mask-image:radial-gradient(ellipse at center,black 40%,transparent 80%);z-index:-1}
-.top-card{margin:16px;padding:18px 20px;background:linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03));border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 0 30px rgba(56,189,248,0.15),inset 0 1px 0 rgba(255,255,255,0.1);flex-shrink:0}
-.top-left h1{font-size:26px;font-weight:800;letter-spacing:-0.5px}
-.top-left p{font-size:12px;opacity:0.7;margin-top:5px;text-transform:capitalize}
-#viewBadge{display:none;font-size:10px;opacity:0.7;margin-top:4px}
-.menu-btn{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer}
-.menu-btn span{width:18px;height:2px;background:#fff;border-radius:2px;display:block;opacity:0.9}
-#chat{flex:1;overflow-y:auto;padding:10px 16px 130px 16px;display:flex;flex-direction:column;gap:16px}
-.ai-bubble{align-self:flex-start;max-width:78%;padding:16px 18px;background:linear-gradient(135deg,rgba(99,102,241,0.85),rgba(139,92,246,0.6) 50%,rgba(99,102,241,0.5));border:1px solid rgba(255,255,255,0.18);backdrop-filter:blur(16px);border-radius:20px 20px 20px 6px;box-shadow:0 8px 32px rgba(99,102,241,0.25),inset 0 1px 0 rgba(255,255,255,0.2);font-size:15px;line-height:1.5;word-break:break-word}
-.user-bubble{align-self:flex-end;max-width:78%;padding:14px 18px;background:linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.05));border:1px solid rgba(255,255,255,0.14);backdrop-filter:blur(16px);border-radius:20px 20px 6px 20px;box-shadow:0 4px 20px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.1);font-size:14px;line-height:1.45;word-break:break-word}
-.ai-bubble img,.user-bubble img{max-width:100%;border-radius:12px;margin-top:10px}
-.input-wrap{position:fixed;bottom:0;left:0;right:0;padding:12px 16px 18px 16px;background:linear-gradient(to top,#02040f 70%,transparent);flex-shrink:0}
-.input-bar{display:flex;align-items:center;gap:12px;padding:8px 8px 8px 10px;background:linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03));border:1px solid rgba(255,255,255,0.14);backdrop-filter:blur(20px);border-radius:28px;box-shadow:0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.1)}
-.plus-btn{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.input-bar input{flex:1;background:transparent;border:none;color:#fff;outline:none;font-size:15px}
-.input-bar input::placeholder{color:rgba(255,255,255,0.5)}
-.send-btn{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#22d3ee,#0ea5e9);border:none;color:#fff;font-size:18px;cursor:pointer;box-shadow:0 0 20px rgba(34,211,238,0.5);display:flex;align-items:center;justify-content:center}
-.bottom-text{text-align:center;font-size:9px;opacity:0.4;margin-top:10px;letter-spacing:0.3px;line-height:1.4}
-#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:99;justify-content:center;align-items:center;padding:20px}
-.modal-box{background:#0f1220;border:1px solid rgba(255,255,255,0.12);padding:20px;border-radius:20px;width:100%;max-width:360px}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Titech AI</title>
+    <meta name="theme-color" content="#080b14">
+    <meta name="description" content="Titech AI — intelligent assistance by Titech Group Ltd.">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #080b14;
+            --panel: #101625;
+            --panel2: #151e30;
+            --border: rgba(255,255,255,.09);
+            --text: #f3f6ff;
+            --muted: #929db2;
+            --accent: #6d8cff;
+            --accent2: #8c6dff;
+            --user: #25365c;
+            --danger: #ff6464;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        button, input, textarea, select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100dvh;
+            max-width: 1100px;
+            margin: auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* HEADER */
+
+        .header {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: rgba(8,11,20,.96);
+            border-bottom: 1px solid var(--border);
+            z-index: 5;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .brand img {
+            width: 42px;
+            height: 42px;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+
+        .brand h1 {
+            font-size: 17px;
+            margin: 0;
+            letter-spacing: .2px;
+        }
+
+        .brand p {
+            margin: 3px 0 0;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--text);
+            border-radius: 12px;
+            width: 42px;
+            height: 42px;
+            font-size: 19px;
+        }
+
+        .icon-btn:hover {
+            background: var(--panel2);
+        }
+
+        /* CHRISTMAS BANNER */
+
+        .christmas-banner {
+            width: 100%;
+            max-height: 190px;
+            overflow: hidden;
+            background: #170808;
+            border-bottom: 1px solid rgba(212,175,55,.25);
+        }
+
+        .christmas-banner img {
+            width: 100%;
+            max-height: 190px;
+            display: block;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        /* CHAT */
+
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 16px 30px;
+            scroll-behavior: smooth;
+        }
+
+        .welcome {
+            text-align: center;
+            max-width: 600px;
+            margin: 55px auto 25px;
+        }
+
+        .welcome .spark {
+            font-size: 35px;
+            margin-bottom: 12px;
+        }
+
+        .welcome h2 {
+            font-size: clamp(23px, 5vw, 32px);
+            margin: 0 0 10px;
+        }
+
+        .welcome p {
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .suggestions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            max-width: 650px;
+            margin: 25px auto;
+        }
+
+        .suggestion {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 14px;
+            padding: 14px;
+            text-align: left;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .suggestion:hover {
+            border-color: var(--accent);
+        }
+
+        .message {
+            display: flex;
+            margin: 20px 0;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            flex: 0 0 32px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            background: var(--panel2);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .message.user .avatar {
+            order: 2;
+            background: #304878;
+        }
+
+        .bubble {
+            max-width: min(82%, 720px);
+            padding: 13px 15px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--panel);
+            font-size: 14px;
+            line-height: 1.7;
+            overflow-wrap: anywhere;
+        }
+
+        .message.user .bubble {
+            background: var(--user);
+            border-color: rgba(109,140,255,.25);
+            border-top-right-radius: 5px;
+        }
+
+        .message.assistant .bubble {
+            border-top-left-radius: 5px;
+        }
+
+        .bubble p:first-child {
+            margin-top: 0;
+        }
+
+        .bubble p:last-child {
+            margin-bottom: 0;
+        }
+
+        .bubble pre {
+            background: #070a11;
+            padding: 12px;
+            border-radius: 10px;
+            overflow-x: auto;
+        }
+
+        .bubble code {
+            background: rgba(255,255,255,.08);
+            padding: 2px 5px;
+            border-radius: 5px;
+        }
+
+        .bubble pre code {
+            background: transparent;
+            padding: 0;
+        }
+
+        .bubble a {
+            color: #91aaff;
+        }
+
+        .bubble img.generated-image {
+            display: block;
+            max-width: 100%;
+            border-radius: 12px;
+            margin-top: 12px;
+        }
+
+        .message-time {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 7px;
+        }
+
+        .typing {
+            color: var(--muted);
+            font-size: 13px;
+            padding: 8px 0;
+        }
+
+        /* INPUT */
+
+        .input-section {
+            padding: 12px 15px 16px;
+            border-top: 1px solid var(--border);
+            background: rgba(8,11,20,.98);
+        }
+
+        .input-wrap {
+            display: flex;
+            align-items: flex-end;
+            gap: 9px;
+            padding: 9px;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            border-radius: 17px;
+        }
+
+        .input-wrap textarea {
+            flex: 1;
+            min-width: 0;
+            resize: none;
+            border: 0;
+            outline: 0;
+            color: var(--text);
+            background: transparent;
+            padding: 9px 5px;
+            max-height: 130px;
+            min-height: 40px;
+            font-size: 14px;
+        }
+
+        .input-wrap textarea::placeholder {
+            color: #758097;
+        }
+
+        .send-btn {
+            width: 42px;
+            height: 42px;
+            border: 0;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: white;
+            font-size: 19px;
+        }
+
+        .send-btn:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+        .input-note {
+            text-align: center;
+            color: var(--muted);
+            font-size: 10px;
+            margin: 9px 0 0;
+        }
+
+        /* SETTINGS PANEL */
+
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.65);
+            z-index: 20;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        .settings-panel {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: min(370px, 88vw);
+            background: #101625;
+            border-left: 1px solid var(--border);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .settings-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+        }
+
+        .settings-head h2 {
+            font-size: 19px;
+            margin: 0;
+        }
+
+        .setting-group {
+            margin: 22px 0;
+        }
+
+        .setting-group label {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 9px;
+        }
+
+        .setting-group select,
+        .setting-group input,
+        .setting-group textarea {
+            width: 100%;
+            border: 1px solid var(--border);
+            background: #080b14;
+            color: var(--text);
+            border-radius: 10px;
+            padding: 12px;
+            outline: none;
+        }
+
+        .setting-btn {
+            width: 100%;
+            border: 1px solid var(--border);
+            color: var(--text);
+            background: var(--panel2);
+            border-radius: 11px;
+            padding: 12px;
+            margin-top: 9px;
+            text-align: left;
+        }
+
+        .setting-btn.danger {
+            color: #ff8888;
+        }
+
+        .user-info {
+            background: #080b14;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 12px;
+            color: var(--muted);
+            overflow-wrap: anywhere;
+        }
+
+        /* TRANSLATION MODAL */
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 30;
+            background: rgba(0,0,0,.75);
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            width: min(520px, 100%);
+            max-height: 90dvh;
+            overflow-y: auto;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            font-size: 19px;
+        }
+
+        .modal-content textarea {
+            width: 100%;
+            min-height: 110px;
+            resize: vertical;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #080b14;
+            color: var(--text);
+            padding: 12px;
+            outline: none;
+        }
+
+        .language-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 12px 0;
+        }
+
+        .language-row select {
+            min-width: 0;
+            background: #080b14;
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 11px;
+        }
+
+        .primary-btn {
+            width: 100%;
+            border: 0;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: white;
+            border-radius: 11px;
+            padding: 13px;
+            margin-top: 12px;
+            font-weight: 600;
+        }
+
+        .secondary-btn {
+            width: 100%;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            border-radius: 11px;
+            padding: 12px;
+            margin-top: 9px;
+        }
+
+        .translation-result {
+            margin-top: 14px;
+            padding: 13px;
+            background: #080b14;
+            border-radius: 10px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #26334d;
+            color: white;
+            padding: 11px 16px;
+            border-radius: 10px;
+            font-size: 12px;
+            display: none;
+            z-index: 50;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        @media (max-width: 520px) {
+            .header {
+                padding: 10px 12px;
+            }
+
+            .brand h1 {
+                font-size: 15px;
+            }
+
+            .christmas-banner img {
+                max-height: 125px;
+            }
+
+            .chat-area {
+                padding: 15px 11px;
+            }
+
+            .bubble {
+                max-width: 88%;
+                font-size: 13px;
+            }
+
+            .suggestions {
+                grid-template-columns: 1fr;
+            }
+
+            .welcome {
+                margin-top: 35px;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-<div class="top-card">
-  <div class="top-left">
-    <h1>Titech AI </h1>
-    <p id="personalityPref">Friendly • Ready to help</p>
-    <div id="viewBadge">👁️ <span id="viewCount">...</span></div>
-  </div>
-  <div class="menu-btn" onclick="openM()"><span></span><span></span><span></span></div>
+<div class="app">
+
+    <header class="header">
+
+        <div class="brand">
+            <img src="/logo.png" alt="Titech logo"
+                 onerror="this.style.display='none'">
+
+            <div>
+                <h1>Titech AI</h1>
+                <p>Intelligence by Titech Group Ltd.</p>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <button class="icon-btn" id="settingsButton"
+                    aria-label="Open settings"
+                    title="Settings">☰</button>
+        </div>
+
+    </header>
+
+    <div class="christmas-banner">
+        <img src="/static/titech-christmas.webp"
+             alt="Titech AI Christmas celebration"
+             onerror="this.parentElement.style.display='none'">
+    </div>
+
+    <main class="chat-area" id="chatArea">
+
+        <section class="welcome" id="welcome">
+
+            <div class="spark">✦</div>
+
+            <h2>Welcome to Titech AI</h2>
+
+            <p>
+                Your intelligent assistant for learning,
+                creativity, research and problem-solving.
+            </p>
+
+            <div class="suggestions">
+
+                <button class="suggestion"
+                    data-prompt="Explain artificial intelligence in simple terms.">
+                    ✨ Explain artificial intelligence
+                </button>
+
+                <button class="suggestion"
+                    data-prompt="Help me create a realistic business plan for a Nigerian startup.">
+                    💡 Build a business plan
+                </button>
+
+                <button class="suggestion"
+                    data-prompt="Teach me Python programming from the beginning.">
+                    💻 Learn programming
+                </button>
+
+                <button class="suggestion"
+                    data-prompt="What are the latest developments in technology?">
+                    🌍 Explore technology
+                </button>
+
+            </div>
+
+        </section>
+
+        <div id="messages"></div>
+
+        <div id="typingIndicator" class="typing"
+             style="display:none;">
+            Titech AI is thinking...
+        </div>
+
+    </main>
+
+    <footer class="input-section">
+
+        <div class="input-wrap">
+
+            <button class="icon-btn" id="translateButton"
+                    title="Translate text" aria-label="Translate">文</button>
+
+            <textarea
+                id="messageInput"
+                placeholder="Message Titech AI..."
+                rows="1"
+                maxlength="4000"></textarea>
+
+            <button class="send-btn" id="sendButton"
+                    title="Send message" aria-label="Send">➤</button>
+
+        </div>
+
+        <p class="input-note">
+            Titech AI can make mistakes. Verify important information.
+        </p>
+
+    </footer>
+
 </div>
 
-<div id="modal" onclick="closeM()"><div class="modal-box" onclick="event.stopPropagation()">
-  <div style="display:flex;justify-content:space-between"><b>Settings</b><span onclick="closeM()" style="cursor:pointer">✕</span></div>
-  <div style="margin-top:14px"><small style="opacity:0.6">Email</small><div id="idEmail" style="padding:10px;background:rgba(255,255,255,0.06);border-radius:10px;margin-top:6px;word-break:break-all;font-size:13px"></div></div>
-  <label style="display:block;margin-top:14px;font-size:12px;opacity:0.7">Personality Preference</label>
-  <select id="personality" style="width:100%;padding:12px;border-radius:10px;background:#0a0c18;color:#fff;border:1px solid rgba(255,255,255,0.15);margin-top:6px">
-    <option value="friendly">😊 Friendly</option>
-    <option value="professional">👔 Professional</option>
-    <option value="deepthink">🧠 Deep Thinking</option>
-    <option value="teacher">📚 Teacher</option>
-    <option value="hyper">⚡ Hyper</option>
-  </select>
-  <button onclick="logout()" style="width:100%;margin-top:14px;padding:12px;border-radius:10px;background:rgba(255,255,255,0.08);border:none;color:#fff">Logout</button>
-</div></div>
 
-<div id="chat"><div class="ai-bubble">✨ Hello Boss! I be Titech AI — built by Olajide Timileyin Samson. Ask me anything!</div></div>
+<!-- SETTINGS -->
 
-<div class="input-wrap">
-  <div class="input-bar"><div class="plus-btn">+</div><input id="msg" placeholder="Ask AI anything..." autocomplete="off"><button class="send-btn" id="sendBtn" onclick="send()">➤</button></div>
-  <div class="bottom-text">Free tier · Privacy on · No training on your chats · Created by Olajide Timileyin Samson</div>
+<div class="overlay" id="settingsOverlay">
+
+    <aside class="settings-panel">
+
+        <div class="settings-head">
+            <h2>Settings</h2>
+            <button class="icon-btn" id="closeSettings"
+                    aria-label="Close settings">×</button>
+        </div>
+
+        <div class="setting-group">
+            <label>Signed in as</label>
+            <div class="user-info" id="userEmail">Loading account...</div>
+        </div>
+
+        <div class="setting-group">
+            <label for="personalitySelect">AI personality</label>
+
+            <select id="personalitySelect">
+                <option value="friendly">Friendly</option>
+                <option value="professional">Professional</option>
+                <option value="deepthink">Deep Think</option>
+                <option value="teacher">Teacher</option>
+                <option value="funny">Funny</option>
+                <option value="naija">Naija</option>
+                <option value="genz">Gen Z</option>
+                <option value="hyper">Energetic</option>
+            </select>
+        </div>
+
+        <div class="setting-group">
+            <label>Tools</label>
+
+            <button class="setting-btn" id="openTranslator">
+                🌍 African language translation
+            </button>
+
+            <button class="setting-btn" id="newChatButton">
+                ＋ Start a new chat
+            </button>
+        </div>
+
+        <div class="setting-group">
+            <label>Account</label>
+
+            <button class="setting-btn danger" id="logoutButton">
+                ↪ Sign out
+            </button>
+        </div>
+
+        <div class="setting-group">
+            <p style="font-size:11px;color:var(--muted);line-height:1.6;">
+                Titech AI is a product of Titech Group Ltd.
+                Some features depend on external AI and translation
+                services.
+            </p>
+        </div>
+
+    </aside>
+
 </div>
+
+
+<!-- TRANSLATION MODAL -->
+
+<div class="modal" id="translationModal">
+
+    <div class="modal-content">
+
+        <h2>🌍 Language Translator</h2>
+
+        <p style="font-size:12px;color:var(--muted);">
+            Translate between supported African and international languages.
+        </p>
+
+        <textarea id="translationInput"
+                  maxlength="1800"
+                  placeholder="Enter text to translate..."></textarea>
+
+        <div class="language-row">
+
+            <select id="sourceLanguage">
+                <option value="English">English</option>
+                <option value="Yoruba">Yoruba</option>
+                <option value="Hausa">Hausa</option>
+                <option value="Igbo">Igbo</option>
+                <option value="Swahili">Swahili</option>
+                <option value="Amharic">Amharic</option>
+                <option value="Arabic">Arabic</option>
+                <option value="French">French</option>
+                <option value="Somali">Somali</option>
+                <option value="Zulu">Zulu</option>
+                <option value="Shona">Shona</option>
+                <option value="Wolof">Wolof</option>
+                <option value="Kinyarwanda">Kinyarwanda</option>
+                <option value="Afrikaans">Afrikaans</option>
+            </select>
+
+            <select id="targetLanguage">
+                <option value="Yoruba">Yoruba</option>
+                <option value="English">English</option>
+                <option value="Hausa">Hausa</option>
+                <option value="Igbo">Igbo</option>
+                <option value="Swahili">Swahili</option>
+                <option value="Amharic">Amharic</option>
+                <option value="Arabic">Arabic</option>
+                <option value="French">French</option>
+                <option value="Somali">Somali</option>
+                <option value="Zulu">Zulu</option>
+                <option value="Shona">Shona</option>
+                <option value="Wolof">Wolof</option>
+                <option value="Kinyarwanda">Kinyarwanda</option>
+                <option value="Afrikaans">Afrikaans</option>
+            </select>
+
+        </div>
+
+        <button class="primary-btn" id="doTranslate">
+            Translate
+        </button>
+
+        <div id="translationResult"
+             class="translation-result"
+             style="display:none;"></div>
+
+        <button class="secondary-btn" id="closeTranslator">
+            Close
+        </button>
+
+    </div>
+
+</div>
+
+
+<div class="toast" id="toast"></div>
+
 
 <script>
-let titech_email = localStorage.getItem('titech_email');
-let titech_name = localStorage.getItem('titech_name');
-if(!titech_email || !titech_email.includes('@')){ location.href='/login'; }
-document.getElementById('idEmail').innerText = titech_email || '';
-const ADMIN_EMAIL = "olajidetimileyinsamson@gmail.com";
-if(titech_email && titech_email.toLowerCase()===ADMIN_EMAIL.toLowerCase()){ document.getElementById('viewBadge').style.display='block'; }
+    // =====================================================
+    // CONFIGURATION AND AUTHENTICATION
+    // =====================================================
 
-let personalityEl = document.getElementById('personality');
-let prefEl = document.getElementById('personalityPref');
-personalityEl.value = localStorage.getItem('titech_personality') || 'friendly';
-function updatePrefText(){ let v=personalityEl.value; prefEl.innerText = v + ' • Ready to help'; }
-updatePrefText();
-personalityEl.addEventListener('change', ()=>{ localStorage.setItem('titech_personality', personalityEl.value); updatePrefText(); });
+    let supabaseClient = null;
+    let currentSession = null;
+    let isSending = false;
 
-function openM(){document.getElementById('modal').style.display='flex'}
-function closeM(){document.getElementById('modal').style.display='none'}
-function logout(){localStorage.clear();location.href='/login'}
+    const messagesElement = document.getElementById("messages");
+    const chatArea = document.getElementById("chatArea");
+    const welcomeElement = document.getElementById("welcome");
+    const input = document.getElementById("messageInput");
+    const sendButton = document.getElementById("sendButton");
+    const typingIndicator = document.getElementById("typingIndicator");
 
-function addMsg(text, cls, imgUrl){
-  if(!text || text.trim()==='') text='Sorry Boss, no reply';
-  let c=document.getElementById('chat');
-  let d=document.createElement('div'); d.className=cls;
-  let html; try{ html=marked.parse(text); }catch{ html=text; }
-  let btns='';
-  if(imgUrl){
-    btns=`<div style="margin-top:8px;display:flex;gap:8px"><button onclick="copyT(this)" style="padding:6px 12px;border-radius:20px;border:1px solid #a855f7;background:rgba(168,85,247,0.15);color:white;font-size:11px">📋 Copy</button><button onclick="saveImg('${imgUrl}')" style="padding:6px 12px;border-radius:20px;border:1px solid #22c55e;background:rgba(34,197,94,0.15);color:white;font-size:11px">💾 Save</button></div>`;
-  }else{
-    btns=`<div style="margin-top:8px"><button onclick="copyT(this)" style="padding:6px 12px;border-radius:20px;border:1px solid #a855f7;background:rgba(168,85,247,0.15);color:white;font-size:11px">📋 Copy</button></div>`;
-  }
-  d.innerHTML=html+(imgUrl?`<br><img src="${imgUrl}" style="max-width:100%;border-radius:12px;margin-top:8px">`:'')+btns;
-  c.appendChild(d); c.scrollTop=c.scrollHeight;
-}
-function copyT(b){ let t=b.parentElement.parentElement.innerText.replace('📋 Copy','').replace('💾 Save',''); navigator.clipboard.writeText(t); b.innerText='Copied ✓'; setTimeout(()=>b.innerText='📋 Copy',1500); }
-function saveImg(u){ let a=document.createElement('a'); a.href=u; a.download='titech-'+Date.now()+'.png'; a.target='_blank'; a.click(); }
-async function loadHistory(){
-    try{ let r=await fetch(`/history?email=${encodeURIComponent(titech_email)}`); let data=await r.json(); if(data && data.length>0){ document.getElementById('chat').innerHTML=''; data.forEach(m=>{ addMsg(m.message,'user-bubble',''); addMsg(m.reply,'ai-bubble',m.image_url); }); } }catch(e){}
-  }
- async function fetchStats(){ try{ let r=await fetch('/stats'); let j=await r.json(); let vb=document.getElementById('viewBadge'); let vc=document.getElementById('viewCount'); if(vb&&vc){ vb.style.display='inline-flex'; vc.innerText=(j.total_views||0)+' views'; } }catch(e){} }
-  loadHistory(); fetchStats();
- async function send(){
- let input=document.getElementById('msg'); let txt=input.value.trim(); if(!txt) return;
- addMsg(txt,'user-bubble',''); input.value='';
- let id='t'+Date.now(); let typing=document.createElement('div'); typing.id=id; typing.className='ai-bubble'; typing.innerText='Titech AI is thinking...'; document.getElementById('chat').appendChild(typing); document.getElementById('chat').scrollTop=document.getElementById('chat').scrollHeight;
- try{ let res=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:txt,username:titech_name||'Boss',user_email:titech_email,personality:personalityEl.value||'friendly'})}); let data=await res.json(); document.getElementById(id).remove(); addMsg(data.reply||'Error, try again','ai-bubble',data.image_url||''); }catch(e){ let el=document.getElementById(id); if(el) el.remove(); addMsg('Network error, try again ⚡','ai-bubble',''); }
-}
-document.getElementById('msg').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); } });
+    const personalitySelect =
+        document.getElementById("personalitySelect");
+
+    function showToast(message) {
+        const toast = document.getElementById("toast");
+
+        toast.textContent = message;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 3000);
+    }
+
+    async function initializeApp() {
+
+        try {
+
+            const response = await fetch("/config", {
+                cache: "no-store"
+            });
+
+            if (!response.ok) {
+                throw new Error("Could not load application configuration.");
+            }
+
+            const config = await response.json();
+
+            if (!config.supabase_url || !config.supabase_anon_key) {
+                throw new Error("Supabase configuration is incomplete.");
+            }
+
+            supabaseClient = window.supabase.createClient(
+                config.supabase_url,
+                config.supabase_anon_key
+            );
+
+            const { data, error } =
+                await supabaseClient.auth.getSession();
+
+            if (error || !data.session) {
+                window.location.replace("/login");
+                return;
+            }
+
+            currentSession = data.session;
+
+            document.getElementById("userEmail").textContent =
+                currentSession.user.email || "Signed in";
+
+            const savedPersonality =
+                localStorage.getItem("titech_personality");
+
+            if (savedPersonality) {
+                personalitySelect.value = savedPersonality;
+            }
+
+            supabaseClient.auth.onAuthStateChange(
+                (_event, session) => {
+
+                    currentSession = session;
+
+                    if (!session) {
+                        window.location.replace("/login");
+                    }
+                }
+            );
+
+            await loadHistory();
+
+        } catch (error) {
+
+            console.error(error);
+
+            showToast(
+                error.message || "Could not initialize Titech AI."
+            );
+        }
+    }
+
+
+    // =====================================================
+    // AUTHENTICATED API REQUESTS
+    // =====================================================
+
+    async function apiRequest(url, options = {}) {
+
+        if (!currentSession) {
+            throw new Error("Please sign in again.");
+        }
+
+        const { data, error } =
+            await supabaseClient.auth.getSession();
+
+        if (error || !data.session) {
+            throw new Error("Your session has expired. Sign in again.");
+        }
+
+        currentSession = data.session;
+
+        const headers = {
+            ...(options.headers || {}),
+            "Authorization": "Bearer " + currentSession.access_token
+        };
+
+        if (options.body) {
+            headers["Content-Type"] = "application/json";
+        }
+
+        const response = await fetch(url, {
+            ...options,
+            headers
+        });
+
+        if (response.status === 401) {
+            await supabaseClient.auth.signOut();
+            window.location.replace("/login");
+            throw new Error("Please sign in again.");
+        }
+
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(
+                result.error || "Something went wrong."
+            );
+        }
+
+        return result;
+    }
+
+
+    // =====================================================
+    // SAFE MARKDOWN RENDERING
+    // =====================================================
+
+    function renderMarkdown(text) {
+
+        const html = marked.parse(
+            String(text || ""),
+            {
+                breaks: true,
+                gfm: true
+            }
+        );
+
+        return DOMPurify.sanitize(html, {
+            USE_PROFILES: {
+                html: true
+            }
+        });
+    }
+
+
+    // =====================================================
+    // DISPLAY MESSAGES
+    // =====================================================
+
+    function addMessage(role, content, imageUrl = null) {
+
+        welcomeElement.style.display = "none";
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "message " + role;
+
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.textContent = role === "user" ? "You" : "Tt";
+
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+
+        if (role === "assistant") {
+            bubble.innerHTML = renderMarkdown(content);
+        } else {
+            bubble.textContent = content;
+        }
+
+        if (imageUrl) {
+
+            const image = document.createElement("img");
+
+            image.className = "generated-image";
+            image.src = imageUrl;
+            image.alt = "Image generated from your request";
+            image.loading = "lazy";
+
+            image.onerror = () => {
+                image.alt = "The generated image could not be loaded.";
+            };
+
+            bubble.appendChild(image);
+        }
+
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(bubble);
+
+        messagesElement.appendChild(wrapper);
+
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+
+    // =====================================================
+    // LOAD CHAT HISTORY
+    // =====================================================
+
+    async function loadHistory() {
+
+        try {
+
+            const history = await apiRequest("/history");
+
+            messagesElement.innerHTML = "";
+
+            if (!Array.isArray(history) || history.length === 0) {
+                welcomeElement.style.display = "block";
+                return;
+            }
+
+            welcomeElement.style.display = "none";
+
+            history.forEach(item => {
+
+                if (item.message) {
+                    addMessage("user", item.message);
+                }
+
+                if (item.reply) {
+                    addMessage(
+                        "assistant",
+                        item.reply,
+                        item.image_url || null
+                    );
+                }
+
+            });
+
+        } catch (error) {
+
+            console.error("History error:", error);
+
+            showToast(
+                "Chat history could not be loaded."
+            );
+        }
+    }
+
+
+    // =====================================================
+    // SEND CHAT MESSAGE
+    // =====================================================
+
+    async function sendMessage(customMessage = null) {
+
+        if (isSending) return;
+
+        const message = (
+            customMessage || input.value
+        ).trim();
+
+        if (!message) return;
+
+        if (!currentSession) {
+            showToast("Please sign in first.");
+            return;
+        }
+
+        isSending = true;
+        sendButton.disabled = true;
+
+        if (!customMessage) {
+            input.value = "";
+            input.style.height = "auto";
+        }
+
+        addMessage("user", message);
+
+        typingIndicator.style.display = "block";
+        chatArea.scrollTop = chatArea.scrollHeight;
+
+        try {
+
+            const result = await apiRequest("/chat", {
+
+                method: "POST",
+
+                body: JSON.stringify({
+
+                    message: message,
+
+                    personality: personalitySelect.value
+
+                })
+
+            });
+
+            addMessage(
+                "assistant",
+                result.reply || "I couldn't generate a response.",
+                result.image_url || null
+            );
+
+        } catch (error) {
+
+            addMessage(
+                "assistant",
+                "I encountered a problem: " + error.message
+            );
+
+        } finally {
+
+            typingIndicator.style.display = "none";
+
+            isSending = false;
+            sendButton.disabled = false;
+
+            input.focus();
+        }
+    }
+
+
+    // =====================================================
+    // INPUT EVENTS
+    // =====================================================
+
+    sendButton.addEventListener("click", () => {
+        sendMessage();
+    });
+
+    input.addEventListener("keydown", event => {
+
+        if (
+            event.key === "Enter" &&
+            !event.shiftKey &&
+            !event.isComposing
+        ) {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+
+    input.addEventListener("input", () => {
+
+        input.style.height = "auto";
+
+        input.style.height =
+            Math.min(input.scrollHeight, 130) + "px";
+    });
+
+
+    // =====================================================
+    // SUGGESTED PROMPTS
+    // =====================================================
+
+    document.querySelectorAll(".suggestion").forEach(button => {
+
+        button.addEventListener("click", () => {
+
+            const prompt = button.dataset.prompt;
+
+            sendMessage(prompt);
+        });
+
+    });
+
+
+    // =====================================================
+    // SETTINGS
+    // =====================================================
+
+    const settingsOverlay =
+        document.getElementById("settingsOverlay");
+
+    document.getElementById("settingsButton")
+        .addEventListener("click", () => {
+            settingsOverlay.classList.add("show");
+        });
+
+    document.getElementById("closeSettings")
+        .addEventListener("click", () => {
+            settingsOverlay.classList.remove("show");
+        });
+
+    settingsOverlay.addEventListener("click", event => {
+
+        if (event.target === settingsOverlay) {
+            settingsOverlay.classList.remove("show");
+        }
+
+    });
+
+    personalitySelect.addEventListener("change", () => {
+
+        localStorage.setItem(
+            "titech_personality",
+            personalitySelect.value
+        );
+
+        showToast("AI personality updated.");
+    });
+
+
+    // =====================================================
+    // NEW CHAT
+    // =====================================================
+
+    document.getElementById("newChatButton")
+        .addEventListener("click", () => {
+
+            messagesElement.innerHTML = "";
+
+            welcomeElement.style.display = "block";
+
+            settingsOverlay.classList.remove("show");
+
+            showToast(
+                "New chat started. Previous conversations remain in history."
+            );
+        });
+
+
+    // =====================================================
+    // SIGN OUT
+    // =====================================================
+
+    document.getElementById("logoutButton")
+        .addEventListener("click", async () => {
+
+            if (!confirm("Are you sure you want to sign out?")) {
+                return;
+            }
+
+            try {
+
+                await supabaseClient.auth.signOut();
+
+                window.location.replace("/login");
+
+            } catch (error) {
+
+                showToast("Could not sign out. Try again.");
+            }
+        });
+
+
+    // =====================================================
+    // TRANSLATION MODAL
+    // =====================================================
+
+    const translationModal =
+        document.getElementById("translationModal");
+
+    function openTranslator() {
+
+        settingsOverlay.classList.remove("show");
+
+        translationModal.classList.add("show");
+    }
+
+    function closeTranslator() {
+        translationModal.classList.remove("show");
+    }
+
+    document.getElementById("translateButton")
+        .addEventListener("click", openTranslator);
+
+    document.getElementById("openTranslator")
+        .addEventListener("click", openTranslator);
+
+    document.getElementById("closeTranslator")
+        .addEventListener("click", closeTranslator);
+
+    translationModal.addEventListener("click", event => {
+
+        if (event.target === translationModal) {
+            closeTranslator();
+        }
+
+    });
+
+
+    // =====================================================
+    // NLLB TRANSLATION REQUEST
+    // =====================================================
+
+    document.getElementById("doTranslate")
+        .addEventListener("click", async () => {
+
+            const text = document.getElementById(
+                "translationInput"
+            ).value.trim();
+
+            const source = document.getElementById(
+                "sourceLanguage"
+            ).value;
+
+            const target = document.getElementById(
+                "targetLanguage"
+            ).value;
+
+            const resultBox = document.getElementById(
+                "translationResult"
+            );
+
+            const button = document.getElementById("doTranslate");
+
+            if (!text) {
+                showToast("Enter text to translate.");
+                return;
+            }
+
+            if (source === target) {
+                showToast("Choose two different languages.");
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = "Translating...";
+
+            resultBox.style.display = "block";
+            resultBox.textContent = "Please wait...";
+
+            try {
+
+                const result = await apiRequest("/translate", {
+
+                    method: "POST",
+
+                    body: JSON.stringify({
+                        text: text,
+                        source: source,
+                        target: target
+                    })
+
+                });
+
+                resultBox.textContent =
+                    result.translation || "No translation returned.";
+
+            } catch (error) {
+
+                resultBox.textContent = error.message;
+
+            } finally {
+
+                button.disabled = false;
+                button.textContent = "Translate";
+            }
+        });
+
+
+    // =====================================================
+    // START APPLICATION
+    // =====================================================
+
+    initializeApp();
+
 </script>
+
 </body>
 </html>
