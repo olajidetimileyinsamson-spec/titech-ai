@@ -1,7 +1,7 @@
-Flask
-flask-cors
-requests
-gunicorn
-groq
-tavily-python
-supabase
+Flask>=3.0,<4
+flask-cors>=4.0,<6
+requests>=2.31,<3
+gunicorn>=21.2,<24
+groq>=0.11,<2
+tavily-python>=0.5,<1
+supabase>=2.10,<3
