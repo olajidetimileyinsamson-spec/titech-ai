@@ -1,97 +1,862 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Titech AI - Login</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-*{ box-sizing:border-box; font-family:'Inter', sans-serif }
-body{ background:#08080c; color:white; display:flex; justify-content:center; align-items:center; min-height:100vh; margin:0; padding:16px }
-.card{ background:#14141f; padding:32px; border-radius:20px; max-width:400px; width:100%; border:1px solid rgba(255,255,255,0.08); }
-.logo{ width:52px; height:52px; margin:0 auto 18px; display:block; border-radius:14px; background:#1a1a2e }
-h2{ text-align:center; font-weight:600; font-size:22px; margin:0 0 6px }
-.sub{ text-align:center; opacity:0.55; font-size:13.5px; margin-bottom:22px }
-label{ font-size:12px; opacity:0.7; margin:14px 0 6px; display:block; font-weight:500 }
-input{ width:100%; padding:13px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:#1a1a26; color:white; font-size:14px; outline:none }
-input:focus{ border-color:#6a5af9; }
-.pw-wrap{ position:relative; }
-.pw-wrap input{ padding-right:44px }
-.eye-btn{ position:absolute; right:6px; top:50%; transform:translateY(-50%); background:transparent; border:none; cursor:pointer; width:36px; height:36px; display:flex; align-items:center; justify-content:center; opacity:0.6 }
-.eye-btn svg{ width:18px; height:18px; stroke:white; fill:none; stroke-width:1.7 }
-.btn-primary{ width:100%; padding:13px; border-radius:10px; border:none; background:white; color:black; font-weight:600; font-size:14px; cursor:pointer; margin-top:20px }
-#status{ font-size:12px; margin-top:12px; opacity:0.6; text-align:center; min-height:18px }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color" content="#080b14">
+    <title>Sign in | Titech AI</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --bg: #080b14;
+            --panel: #111827;
+            --border: rgba(255,255,255,.1);
+            --text: #f3f6ff;
+            --muted: #929db2;
+            --accent: #6d8cff;
+            --accent2: #8c6dff;
+            --danger: #ff7777;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background:
+                radial-gradient(circle at 15% 10%, #172449 0%, transparent 35%),
+                radial-gradient(circle at 90% 90%, #251544 0%, transparent 35%),
+                var(--bg);
+            color: var(--text);
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .brand-logo {
+            width: 65px;
+            height: 65px;
+            object-fit: contain;
+            border-radius: 17px;
+            margin-bottom: 10px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 27px;
+            letter-spacing: .3px;
+        }
+
+        .brand p {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 7px;
+        }
+
+        .card {
+            background: rgba(17,24,39,.94);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 27px;
+            box-shadow: 0 20px 70px rgba(0,0,0,.3);
+        }
+
+        .tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            background: #080b14;
+            padding: 5px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .tab {
+            border: 0;
+            border-radius: 9px;
+            padding: 11px;
+            color: var(--muted);
+            background: transparent;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .tab.active {
+            background: #26365c;
+            color: white;
+        }
+
+        h2 {
+            font-size: 21px;
+            margin: 0 0 8px;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 13px;
+            margin: 0 0 23px;
+            line-height: 1.5;
+        }
+
+        .field {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: #c4ccda;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            border: 1px solid var(--border);
+            background: #080b14;
+            color: white;
+            border-radius: 11px;
+            padding: 14px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+        }
+
+        input::placeholder {
+            color: #69748a;
+        }
+
+        .password-wrap {
+            position: relative;
+        }
+
+        .password-wrap input {
+            padding-right: 65px;
+        }
+
+        .show-password {
+            position: absolute;
+            right: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            color: var(--muted);
+            border: 0;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .primary-btn {
+            width: 100%;
+            border: 0;
+            border-radius: 11px;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 7px;
+        }
+
+        .primary-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .forgot {
+            display: block;
+            text-align: right;
+            margin: -5px 0 15px;
+            color: #a6b7ff;
+            font-size: 12px;
+            cursor: pointer;
+            background: none;
+            border: 0;
+        }
+
+        .message {
+            display: none;
+            margin: 15px 0 0;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .message.error {
+            display: block;
+            background: rgba(255,90,90,.1);
+            color: #ff9999;
+            border: 1px solid rgba(255,90,90,.2);
+        }
+
+        .message.success {
+            display: block;
+            background: rgba(65,200,130,.1);
+            color: #8de5b2;
+            border: 1px solid rgba(65,200,130,.2);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 22px;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media(max-width: 420px) {
+            .card {
+                padding: 21px;
+            }
+        }
+    </style>
 </head>
+
 <body>
-<div class="card">
-<img src="/logo.png" class="logo" alt="">
-<h2>Welcome to Titech AI</h2>
-<p class="sub">Sign in to continue. Your conversations are private.</p>
 
-<label>Email</label>
-<input id="email" type="email" placeholder="you@example.com">
+<div class="container">
 
-<label>Username</label>
-<input id="username" type="text" placeholder="Optional">
+    <div class="brand">
 
-<label>Password</label>
-<div class="pw-wrap">
-  <input id="password" type="password" placeholder="Minimum 6 characters">
-  <button type="button" class="eye-btn" onclick="togglePw()" id="eyeBtn">
-    <svg id="eyeOpen" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-    <svg id="eyeClosed" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.53 9.53a3 3 0 1 0 4.27 4.27"/><path d="M14.07 14.07L9.93 9.93M1 1l22 22"/></svg>
-  </button>
+        <img
+            src="/logo.png"
+            alt="Titech logo"
+            class="brand-logo"
+            onerror="this.style.display='none'"
+        >
+
+        <h1>Titech AI</h1>
+
+        <p>Intelligence by Titech Group Ltd.</p>
+
+    </div>
+
+
+    <main class="card">
+
+        <div class="tabs">
+
+            <button class="tab active" id="loginTab">
+                Sign in
+            </button>
+
+            <button class="tab" id="signupTab">
+                Create account
+            </button>
+
+        </div>
+
+
+        <!-- LOGIN FORM -->
+
+        <section id="loginSection">
+
+            <h2>Welcome back</h2>
+
+            <p class="subtitle">
+                Sign in to continue using Titech AI.
+            </p>
+
+            <form id="loginForm">
+
+                <div class="field">
+
+                    <label for="loginEmail">Email address</label>
+
+                    <input
+                        id="loginEmail"
+                        type="email"
+                        placeholder="you@example.com"
+                        autocomplete="email"
+                        maxlength="254"
+                        required
+                    >
+
+                </div>
+
+                <div class="field">
+
+                    <label for="loginPassword">Password</label>
+
+                    <div class="password-wrap">
+
+                        <input
+                            id="loginPassword"
+                            type="password"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            class="show-password"
+                            data-target="loginPassword"
+                        >
+                            Show
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="forgot"
+                    id="forgotPassword"
+                >
+                    Forgot password?
+                </button>
+
+                <button
+                    type="submit"
+                    class="primary-btn"
+                    id="loginButton"
+                >
+                    Sign in
+                </button>
+
+            </form>
+
+        </section>
+
+
+        <!-- SIGNUP FORM -->
+
+        <section id="signupSection" class="hidden">
+
+            <h2>Create your account</h2>
+
+            <p class="subtitle">
+                Join Titech AI and start exploring.
+            </p>
+
+            <form id="signupForm">
+
+                <div class="field">
+
+                    <label for="signupName">Full name</label>
+
+                    <input
+                        id="signupName"
+                        type="text"
+                        placeholder="Your name"
+                        autocomplete="name"
+                        maxlength="80"
+                        required
+                    >
+
+                </div>
+
+                <div class="field">
+
+                    <label for="signupEmail">Email address</label>
+
+                    <input
+                        id="signupEmail"
+                        type="email"
+                        placeholder="you@example.com"
+                        autocomplete="email"
+                        maxlength="254"
+                        required
+                    >
+
+                </div>
+
+                <div class="field">
+
+                    <label for="signupPassword">Password</label>
+
+                    <div class="password-wrap">
+
+                        <input
+                            id="signupPassword"
+                            type="password"
+                            placeholder="At least 8 characters"
+                            autocomplete="new-password"
+                            minlength="8"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            class="show-password"
+                            data-target="signupPassword"
+                        >
+                            Show
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div class="field">
+
+                    <label for="confirmPassword">
+                        Confirm password
+                    </label>
+
+                    <input
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="Enter your password again"
+                        autocomplete="new-password"
+                        minlength="8"
+                        required
+                    >
+
+                </div>
+
+                <button
+                    type="submit"
+                    class="primary-btn"
+                    id="signupButton"
+                >
+                    Create account
+                </button>
+
+            </form>
+
+        </section>
+
+
+        <div id="messageBox" class="message"></div>
+
+    </main>
+
+
+    <footer class="footer">
+
+        © <span id="year"></span> Titech Group Ltd.
+
+        <br>
+
+        Building technology from Nigeria for the world.
+
+    </footer>
+
 </div>
 
-<button type="button" class="btn-primary" id="loginBtn" onclick="doLogin()">Continue</button>
-<p id="status"></p>
-</div>
 
 <script>
-function togglePw(){
-  let p=document.getElementById('password');
-  let open=document.getElementById('eyeOpen');
-  let closed=document.getElementById('eyeClosed');
-  if(p.type==='password'){ p.type='text'; open.style.display='none'; closed.style.display='block'; }
-  else{ p.type='password'; open.style.display='block'; closed.style.display='none'; }
-}
 
-function doLogin(){
-  let email=document.getElementById('email').value.trim().toLowerCase();
-  let username=document.getElementById('username').value.trim() || email.split('@')[0];
-  let password=document.getElementById('password').value.trim();
-  let status=document.getElementById('status');
+    // =====================================================
+    // SUPABASE INITIALIZATION
+    // =====================================================
 
-  if(!email){ status.innerText='Please enter email'; return; }
-  if(!email.includes('@')){ status.innerText='Enter valid email'; return; }
-  if(!password){ status.innerText='Please enter password'; return; }
-  if(password.length<6){ status.innerText='Password must be 6+ chars'; return; }
+    let supabaseClient = null;
 
-  status.innerText='Signing you in...';
+    const messageBox = document.getElementById("messageBox");
 
-  // Clear old bad format once before saving
-  localStorage.removeItem('titech_email_full');
+    const loginSection = document.getElementById("loginSection");
+    const signupSection = document.getElementById("signupSection");
 
-  // SAVE - this format matches your index.html
-  localStorage.setItem('titech_email', email);
-  localStorage.setItem('titech_user', username);
-  localStorage.setItem('titech_email_full', JSON.stringify({email:email, username:username, password:password, loginAt: new Date().toISOString()}));
+    const loginTab = document.getElementById("loginTab");
+    const signupTab = document.getElementById("signupTab");
 
-  setTimeout(function(){ window.location.href='/'; }, 400);
-}
 
-// Check if already logged in - compatible with old and new format
-let saved = localStorage.getItem('titech_email');
-if(saved){
-  try{
-    // If old format was JSON, extract email
-    if(saved.startsWith('{')){ saved = JSON.parse(saved).email; }
-  }catch(e){}
-  if(saved && saved.includes('@')){
-    // Don't auto-clear, just go home
-    // window.location.href='/'; // uncomment if you want auto redirect
-  }
-}
+    function showMessage(message, type = "error") {
+
+        messageBox.textContent = message;
+
+        messageBox.className = "message " + type;
+
+    }
+
+
+    function clearMessage() {
+
+        messageBox.textContent = "";
+        messageBox.className = "message";
+
+    }
+
+
+    async function initializeAuth() {
+
+        try {
+
+            const response = await fetch("/config", {
+                cache: "no-store"
+            });
+
+            if (!response.ok) {
+                throw new Error("Could not load authentication settings.");
+            }
+
+            const config = await response.json();
+
+            if (
+                !config.supabase_url ||
+                !config.supabase_anon_key
+            ) {
+                throw new Error("Supabase configuration is incomplete.");
+            }
+
+            supabaseClient = window.supabase.createClient(
+                config.supabase_url,
+                config.supabase_anon_key
+            );
+
+            const { data, error } =
+                await supabaseClient.auth.getSession();
+
+            if (error) {
+                throw error;
+            }
+
+            if (data.session) {
+                window.location.replace("/");
+            }
+
+        } catch (error) {
+
+            console.error("Authentication initialization:", error);
+
+            showMessage(
+                "Authentication is temporarily unavailable. Please try again later."
+            );
+        }
+    }
+
+
+    // =====================================================
+    // SWITCH BETWEEN LOGIN AND SIGNUP
+    // =====================================================
+
+    function showLogin() {
+
+        loginSection.classList.remove("hidden");
+        signupSection.classList.add("hidden");
+
+        loginTab.classList.add("active");
+        signupTab.classList.remove("active");
+
+        clearMessage();
+    }
+
+
+    function showSignup() {
+
+        signupSection.classList.remove("hidden");
+        loginSection.classList.add("hidden");
+
+        signupTab.classList.add("active");
+        loginTab.classList.remove("active");
+
+        clearMessage();
+    }
+
+
+    loginTab.addEventListener("click", showLogin);
+
+    signupTab.addEventListener("click", showSignup);
+
+
+    // =====================================================
+    // PASSWORD VISIBILITY
+    // =====================================================
+
+    document.querySelectorAll(".show-password").forEach(button => {
+
+        button.addEventListener("click", () => {
+
+            const target = document.getElementById(
+                button.dataset.target
+            );
+
+            if (target.type === "password") {
+
+                target.type = "text";
+                button.textContent = "Hide";
+
+            } else {
+
+                target.type = "password";
+                button.textContent = "Show";
+            }
+
+        });
+
+    });
+
+
+    // =====================================================
+    // LOGIN
+    // =====================================================
+
+    document.getElementById("loginForm")
+        .addEventListener("submit", async event => {
+
+            event.preventDefault();
+
+            clearMessage();
+
+            if (!supabaseClient) {
+                showMessage("Authentication is not ready. Refresh and try again.");
+                return;
+            }
+
+            const email = document.getElementById(
+                "loginEmail"
+            ).value.trim().toLowerCase();
+
+            const password = document.getElementById(
+                "loginPassword"
+            ).value;
+
+            const button = document.getElementById("loginButton");
+
+            button.disabled = true;
+            button.textContent = "Signing in...";
+
+            try {
+
+                const { data, error } =
+                    await supabaseClient.auth.signInWithPassword({
+
+                        email: email,
+                        password: password
+
+                    });
+
+                if (error) {
+                    throw error;
+                }
+
+                if (!data.session) {
+                    throw new Error("Sign-in was not completed. Please try again.");
+                }
+
+                showMessage("Signed in successfully. Opening Titech AI...", "success");
+
+                window.location.replace("/");
+
+            } catch (error) {
+
+                console.error("Login error:", error);
+
+                showMessage(
+                    error.message || "Unable to sign in. Check your details."
+                );
+
+            } finally {
+
+                button.disabled = false;
+                button.textContent = "Sign in";
+
+            }
+
+        });
+
+
+    // =====================================================
+    // SIGNUP
+    // =====================================================
+
+    document.getElementById("signupForm")
+        .addEventListener("submit", async event => {
+
+            event.preventDefault();
+
+            clearMessage();
+
+            if (!supabaseClient) {
+                showMessage("Authentication is not ready. Refresh and try again.");
+                return;
+            }
+
+            const name = document.getElementById(
+                "signupName"
+            ).value.trim();
+
+            const email = document.getElementById(
+                "signupEmail"
+            ).value.trim().toLowerCase();
+
+            const password = document.getElementById(
+                "signupPassword"
+            ).value;
+
+            const confirmPassword = document.getElementById(
+                "confirmPassword"
+            ).value;
+
+            if (!name) {
+                showMessage("Please enter your name.");
+                return;
+            }
+
+            if (password.length < 8) {
+                showMessage("Your password must contain at least 8 characters.");
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showMessage("Your passwords do not match.");
+                return;
+            }
+
+            const button = document.getElementById("signupButton");
+
+            button.disabled = true;
+            button.textContent = "Creating account...";
+
+            try {
+
+                const { data, error } =
+                    await supabaseClient.auth.signUp({
+
+                        email: email,
+
+                        password: password,
+
+                        options: {
+
+                            data: {
+                                username: name
+                            },
+
+                            emailRedirectTo:
+                                window.location.origin + "/login"
+
+                        }
+
+                    });
+
+                if (error) {
+                    throw error;
+                }
+
+                if (data.session) {
+
+                    showMessage(
+                        "Your account has been created. Opening Titech AI...",
+                        "success"
+                    );
+
+                    window.location.replace("/");
+
+                } else {
+
+                    showMessage(
+                        "Account created. Please check your email and click the verification link before signing in.",
+                        "success"
+                    );
+
+                    document.getElementById("signupForm").reset();
+
+                    showLogin();
+                }
+
+            } catch (error) {
+
+                console.error("Signup error:", error);
+
+                showMessage(
+                    error.message || "Account creation failed. Please try again."
+                );
+
+            } finally {
+
+                button.disabled = false;
+                button.textContent = "Create account";
+
+            }
+
+        });
+
+
+    // =====================================================
+    // PASSWORD RESET
+    // =====================================================
+
+    document.getElementById("forgotPassword")
+        .addEventListener("click", async () => {
+
+            clearMessage();
+
+            if (!supabaseClient) {
+                showMessage("Authentication is not ready.");
+                return;
+            }
+
+            const email = document.getElementById(
+                "loginEmail"
+            ).value.trim().toLowerCase();
+
+            if (!email) {
+                showMessage("Enter your email address first.");
+                return;
+            }
+
+            try {
+
+                const { error } =
+                    await supabaseClient.auth.resetPasswordForEmail(
+                        email,
+                        {
+                            redirectTo: window.location.origin + "/login"
+                        }
+                    );
+
+                if (error) {
+                    throw error;
+                }
+
+                showMessage(
+                    "If an account exists for that email, a password reset link will be sent.",
+                    "success"
+                );
+
+            } catch (error) {
+
+                console.error("Password reset error:", error);
+
+                showMessage(
+                    "Unable to request a password reset. Please try again later."
+                );
+            }
+
+        });
+
+
+    // =====================================================
+    // PAGE INITIALIZATION
+    // =====================================================
+
+    document.getElementById("year").textContent =
+        new Date().getFullYear();
+
+    initializeAuth();
+
 </script>
+
 </body>
 </html>
