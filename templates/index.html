@@ -671,6 +671,62 @@
     border-radius: 8px;
     font-size: 11px;
 }
+        
+/* API TESTING CONSOLE */
+
+.api-test-panel {
+    margin-top: 20px;
+    padding: 14px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+}
+
+.api-test-panel h3 {
+    font-size: 15px;
+    margin-top: 0;
+}
+
+.api-test-panel p {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.api-test-panel input,
+.api-test-panel textarea {
+    width: 100%;
+    padding: 11px;
+    margin: 7px 0;
+    color: var(--text);
+    background: #080b14;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+}
+
+.api-test-panel textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.api-test-result {
+    margin-top: 12px;
+    padding: 12px;
+    background: #080b14;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-size: 12px;
+    line-height: 1.6;
+    display: none;
+}
+
+.api-test-result pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
         @media (max-width: 520px) {
             .header {
                 padding: 10px 12px;
@@ -970,11 +1026,43 @@
             </div>
         </div>
 
-        <div id="devGeneratedKey" style="display:none;"></div>
+        
+<div id="devGeneratedKey" style="display:none;"></div>
 
-        <button class="secondary-btn" id="closeDeveloperDashboard">
-            Close dashboard
-        </button>
+<!-- API TESTING CONSOLE -->
+
+<div class="api-test-panel">
+
+    <h3>🧪 API Testing Console</h3>
+
+    <p>
+        Test your Titech AI application using its test API key.
+        Your key is sent directly to the backend and is not saved
+        in browser storage.
+    </p>
+
+    <label for="apiTestKey">Test API key</label>
+    <input
+        id="apiTestKey"
+        type="password"
+        autocomplete="off"
+        placeholder="Paste your tt_test_ API key">
+
+    <label for="apiTestMessage">Test message</label>
+    <textarea id="apiTestMessage">Hello Titech AI. Explain what you can do in three sentences.</textarea>
+
+    <button class="dev-button" id="runApiTest">
+        Send API test
+    </button>
+
+    <div id="apiTestResult" class="api-test-result"></div>
+
+</div>
+
+<button class="secondary-btn" id="closeDeveloperDashboard">
+    Close dashboard
+</button>
+
 
     </div>
 </div>
@@ -1638,6 +1726,103 @@
             panel.textContent = "Could not load API keys: " + error.message;
         }
     }
+    
+// =====================================
+// TITECH AI API TESTING CONSOLE
+// =====================================
+
+const apiTestButton = document.getElementById("runApiTest");
+const apiTestResult = document.getElementById("apiTestResult");
+
+apiTestButton.addEventListener("click", async () => {
+
+    const apiKey = document.getElementById("apiTestKey").value.trim();
+    const message = document.getElementById("apiTestMessage").value.trim();
+
+    if (!apiKey) {
+        showDevFeedback("Enter your test API key.");
+        return;
+    }
+
+    if (!apiKey.startsWith("tt_test_")) {
+        showDevFeedback("Use a test API key beginning with tt_test_.");
+        return;
+    }
+
+    if (!message) {
+        showDevFeedback("Enter a test message.");
+        return;
+    }
+
+    apiTestButton.disabled = true;
+    apiTestButton.textContent = "Testing API...";
+
+    apiTestResult.style.display = "block";
+    apiTestResult.textContent = "Connecting to Titech AI...";
+
+    try {
+
+        const response = await fetch("/v1/developer/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + apiKey,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                messages: [
+                    {
+                        role: "user",
+                        content: message
+                    }
+                ]
+            })
+        });
+
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(
+                result.error ||
+                result.message ||
+                "API request failed with HTTP " + response.status
+            );
+        }
+
+        const answer =
+            result.choices?.[0]?.message?.content ||
+            result.reply ||
+            "The API responded, but no assistant message was found.";
+
+        const usage = result.usage || {};
+
+        apiTestResult.textContent =
+            "API CONNECTION SUCCESSFUL\n\n" +
+            "AI RESPONSE:\n" + answer + "\n\n" +
+            "USAGE:\n" +
+            "Prompt tokens: " + (usage.prompt_tokens ?? "Not provided") + "\n" +
+            "Completion tokens: " + (usage.completion_tokens ?? "Not provided") + "\n" +
+            "Total tokens: " + (usage.total_tokens ?? "Not provided") + "\n\n" +
+            "MODEL: " + (result.model || "Not provided") + "\n" +
+            "SEARCH STATUS: " + (result.search_status || "Not provided") + "\n" +
+            "HTTP STATUS: " + response.status;
+
+        showDevFeedback("Your API request succeeded.", "success");
+
+    } catch (error) {
+
+        apiTestResult.textContent =
+            "API TEST FAILED\n\n" + error.message;
+
+        showDevFeedback("API test failed: " + error.message);
+
+    } finally {
+
+        apiTestButton.disabled = false;
+        apiTestButton.textContent = "Send API test";
+
+    }
+});
+
     initializeApp();
 </script>
 
