@@ -341,8 +341,8 @@
             color: var(--muted);
             font-size: 10px;
             margin: 9px 0 0;
-        }
-
+        } 
+        
         /* SETTINGS PANEL */
 
         .overlay {
@@ -555,7 +555,122 @@
         .conversation-delete { flex:0 0 38px; width:38px; color:var(--danger)!important; }
         .conversation-item.active .conversation-open { border-color:var(--accent); background:var(--panel2); }
         .avatar img { width:100%; height:100%; object-fit:contain; border-radius:9px; }
+        /* DEVELOPER PLATFORM */
 
+.dev-section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    padding: 14px;
+}
+
+.dev-description {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.dev-field {
+    margin: 13px 0;
+}
+
+.dev-field label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 7px;
+}
+
+.dev-field input,
+.dev-field textarea,
+.dev-field select {
+    width: 100%;
+    padding: 11px;
+    color: var(--text);
+    background: #080b14;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+}
+
+.dev-field textarea {
+    min-height: 85px;
+    resize: vertical;
+}
+
+.dev-button {
+    width: 100%;
+    padding: 11px;
+    margin-top: 8px;
+    color: white;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: 0;
+    border-radius: 9px;
+}
+
+.dev-button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.dev-app {
+    background: #080b14;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 12px;
+    margin: 12px 0;
+    overflow-wrap: anywhere;
+}
+
+.dev-app strong,
+.dev-app small {
+    display: block;
+    margin-bottom: 6px;
+}
+
+.dev-app small {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.dev-key {
+    padding: 12px;
+    margin-top: 12px;
+    background: #080b14;
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    overflow-wrap: anywhere;
+    font-size: 12px;
+}
+
+.dev-error {
+    color: #ff8888;
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+.dev-success {
+    color: #8ce6ad;
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+.dev-actions {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin-top: 9px;
+}
+
+.dev-actions button {
+    flex: 1;
+    min-width: 90px;
+    padding: 8px;
+    color: var(--text);
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 11px;
+}
         @media (max-width: 520px) {
             .header {
                 padding: 10px 12px;
@@ -742,9 +857,29 @@
             </div>
         </div>
 
+
+        <div class="setting-group">
+            <label>Developer Platform</label>
+
+            <div class="dev-section">
+                <h3 style="font-size:15px;margin:0 0 8px;">
+                    ⚡ Titech AI Developer API
+                </h3>
+
+                <p class="dev-description">
+                    Create applications and API keys to connect
+                    Titech AI to your own software and services.
+                </p>
+
+                <button class="setting-btn" id="openDeveloperDashboard">
+                    Open Developer Dashboard →
+                </button>
+            </div>
+        </div>
+            
         <div class="setting-group">
             <label>Account</label>
-
+            
             <button class="setting-btn danger" id="logoutButton">
                 ↪ Sign out
             </button>
@@ -764,7 +899,85 @@
 
 
 <!-- TRANSLATION MODAL -->
+<!-- DEVELOPER DASHBOARD -->
 
+<div class="modal" id="developerModal">
+    <div class="modal-content">
+
+        <h2>⚡ Developer Dashboard</h2>
+
+        <p class="dev-description">
+            Manage your applications and their Titech AI API keys.
+        </p>
+
+        <div class="dev-section">
+            <h3 style="font-size:15px;">Create an application</h3>
+
+            <div class="dev-field">
+                <label for="devAppName">Application name</label>
+                <input id="devAppName" maxlength="100"
+                       placeholder="e.g. My Customer Support App">
+            </div>
+
+            <div class="dev-field">
+                <label for="devAppDescription">Description</label>
+                <textarea id="devAppDescription" maxlength="1000"
+                          placeholder="What will your application do?"></textarea>
+            </div>
+
+            <div class="dev-field">
+                <label for="devAppInstructions">AI instructions</label>
+                <textarea id="devAppInstructions" maxlength="5000"
+                          placeholder="How should the AI behave in this application?"></textarea>
+            </div>
+
+            <div class="dev-field">
+                <label for="devAppContext">Application context</label>
+                <textarea id="devAppContext" maxlength="5000"
+                          placeholder="Information the AI should know about this application."></textarea>
+            </div>
+
+            <div class="dev-field">
+                <label for="devAppPersonality">AI personality</label>
+                <select id="devAppPersonality">
+                    <option value="friendly">Friendly</option>
+                    <option value="professional">Professional</option>
+                    <option value="deepthink">Deep Think</option>
+                    <option value="teacher">Teacher</option>
+                    <option value="funny">Funny</option>
+                    <option value="naija">Naija</option>
+                    <option value="genz">Gen Z</option>
+                    <option value="hyper">Energetic</option>
+                </select>
+            </div>
+
+            <button class="dev-button" id="createDevApp">
+                Create application
+            </button>
+        </div>
+
+        <div id="devFeedback"></div>
+
+        <div style="margin-top:22px;">
+            <h3 style="font-size:15px;">Your applications</h3>
+
+            <button class="secondary-btn" id="refreshDevApps">
+                Refresh applications
+            </button>
+
+            <div id="devAppsList">
+                <p class="dev-description">Applications have not been loaded yet.</p>
+            </div>
+        </div>
+
+        <div id="devGeneratedKey" style="display:none;"></div>
+
+        <button class="secondary-btn" id="closeDeveloperDashboard">
+            Close dashboard
+        </button>
+
+    </div>
+</div>
 <div class="modal" id="translationModal">
 
     <div class="modal-content">
@@ -1113,7 +1326,318 @@
         catch (error) { resultBox.textContent = error.message; }
         finally { button.disabled = false; button.textContent = "Translate"; }
     });
+        // =====================================
+    // TITECH AI DEVELOPER PLATFORM
+    // =====================================
 
+    const developerModal = document.getElementById("developerModal");
+    const devAppsList = document.getElementById("devAppsList");
+    const devFeedback = document.getElementById("devFeedback");
+    const devGeneratedKey = document.getElementById("devGeneratedKey");
+
+    function showDevFeedback(message, type = "error") {
+        devFeedback.className = type === "success" ? "dev-success" : "dev-error";
+        devFeedback.textContent = message;
+    }
+
+    function getDevArray(result, names) {
+        for (const name of names) {
+            if (Array.isArray(result?.[name])) return result[name];
+        }
+        return Array.isArray(result) ? result : [];
+    }
+
+    function getDevId(item) {
+        return item?.id || item?.application_id || item?.key_id || null;
+    }
+
+    function openDeveloperDashboard() {
+        settingsOverlay.classList.remove("show");
+        developerModal.classList.add("show");
+        devFeedback.textContent = "";
+        devGeneratedKey.style.display = "none";
+        loadDeveloperApps();
+    }
+
+    document.getElementById("openDeveloperDashboard")
+        .addEventListener("click", openDeveloperDashboard);
+
+    document.getElementById("closeDeveloperDashboard")
+        .addEventListener("click", () => developerModal.classList.remove("show"));
+
+    developerModal.addEventListener("click", event => {
+        if (event.target === developerModal) {
+            developerModal.classList.remove("show");
+        }
+    });
+
+    document.getElementById("refreshDevApps")
+        .addEventListener("click", loadDeveloperApps);
+
+    async function loadDeveloperApps() {
+        devAppsList.textContent = "Loading applications...";
+
+        try {
+            const result = await apiRequest("/developer/apps");
+            const apps = getDevArray(result, ["applications", "apps"]);
+
+            devAppsList.innerHTML = "";
+
+            if (!apps.length) {
+                devAppsList.textContent = "You haven't created an application yet.";
+                return;
+            }
+
+            for (const app of apps) {
+                const appId = getDevId(app);
+                const card = document.createElement("div");
+                card.className = "dev-app";
+
+                const name = document.createElement("strong");
+                name.textContent = app.name || "Unnamed application";
+
+                const description = document.createElement("small");
+                description.textContent = app.description || "No description provided.";
+
+                const status = document.createElement("small");
+                status.textContent = "Status: " + (app.status || "Unknown");
+
+                card.append(name, description, status);
+
+                if (!appId) {
+                    devAppsList.appendChild(card);
+                    continue;
+                }
+
+                const actions = document.createElement("div");
+                actions.className = "dev-actions";
+
+                const keysButton = document.createElement("button");
+                keysButton.textContent = "Manage API keys";
+                keysButton.addEventListener("click", () => loadDeveloperKeys(appId, card));
+
+                actions.appendChild(keysButton);
+                card.appendChild(actions);
+                devAppsList.appendChild(card);
+            }
+
+        } catch (error) {
+            devAppsList.textContent = "Could not load applications: " + error.message;
+        }
+    }
+
+    document.getElementById("createDevApp")
+        .addEventListener("click", async () => {
+            const button = document.getElementById("createDevApp");
+
+            const payload = {
+                name: document.getElementById("devAppName").value.trim(),
+                description: document.getElementById("devAppDescription").value.trim(),
+                system_instructions: document.getElementById("devAppInstructions").value.trim(),
+                application_context: document.getElementById("devAppContext").value.trim(),
+                personality: document.getElementById("devAppPersonality").value
+            };
+
+            if (!payload.name) {
+                showDevFeedback("Enter an application name.");
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = "Creating...";
+
+            try {
+                await apiRequest("/developer/apps", {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                });
+
+                showDevFeedback("Application created successfully.", "success");
+
+                document.getElementById("devAppName").value = "";
+                document.getElementById("devAppDescription").value = "";
+                document.getElementById("devAppInstructions").value = "";
+                document.getElementById("devAppContext").value = "";
+
+                await loadDeveloperApps();
+
+            } catch (error) {
+                showDevFeedback("Application creation failed: " + error.message);
+            } finally {
+                button.disabled = false;
+                button.textContent = "Create application";
+            }
+        });
+
+    async function loadDeveloperKeys(appId, card) {
+        const oldPanel = card.querySelector(".dev-key-list");
+        if (oldPanel) oldPanel.remove();
+
+        const panel = document.createElement("div");
+        panel.className = "dev-key-list";
+        panel.textContent = "Loading API keys...";
+        card.appendChild(panel);
+
+        try {
+            const result = await apiRequest(
+                "/developer/apps/" + encodeURIComponent(appId) + "/keys"
+            );
+
+            const keys = getDevArray(result, ["keys", "api_keys"]);
+            panel.innerHTML = "";
+
+            const heading = document.createElement("strong");
+            heading.textContent = "API keys";
+            panel.appendChild(heading);
+
+            const environment = document.createElement("select");
+            environment.style.cssText =
+                "width:100%;padding:10px;margin-top:10px;background:#080b14;color:white;border:1px solid var(--border);border-radius:8px;";
+
+            environment.innerHTML = `
+                <option value="test">Test key</option>
+                <option value="live">Live key</option>
+            `;
+
+            const generateButton = document.createElement("button");
+            generateButton.className = "dev-button";
+            generateButton.textContent = "Generate API key";
+
+            generateButton.addEventListener("click", async () => {
+                if (!confirm("Generate a new " + environment.value + " API key?")) return;
+
+                generateButton.disabled = true;
+                generateButton.textContent = "Generating...";
+
+                try {
+                    const generated = await apiRequest(
+                        "/developer/apps/" + encodeURIComponent(appId) + "/keys",
+                        {
+                            method: "POST",
+                            body: JSON.stringify({
+                                environment: environment.value
+                            })
+                        }
+                    );
+
+                    const rawKey =
+                        (typeof generated.key === "string" ? generated.key : null) ||
+                        (typeof generated.api_key === "string" ? generated.api_key : null) ||
+                        (typeof generated.token === "string" ? generated.token : null) ||
+                        (typeof generated.secret === "string" ? generated.secret : null) ||
+                        generated.key?.secret ||
+                        generated.key?.api_key ||
+                        generated.api_key?.secret ||
+                        null;
+
+                    if (!rawKey) {
+                        showDevFeedback(
+                            "The server response did not contain a recognizable API key. No key has been displayed. Check the backend response format."
+                        );
+                        return;
+                    }
+
+                    devGeneratedKey.innerHTML = "";
+                    devGeneratedKey.style.display = "block";
+
+                    const warning = document.createElement("p");
+                    warning.className = "dev-error";
+                    warning.textContent =
+                        "Important: Copy this key now. It may not be shown again.";
+
+                    const keyBox = document.createElement("div");
+                    keyBox.className = "dev-key";
+
+                    const keyText = document.createElement("code");
+                    keyText.textContent = rawKey;
+
+                    const copyButton = document.createElement("button");
+                    copyButton.className = "dev-button";
+                    copyButton.textContent = "Copy API key";
+
+                    copyButton.addEventListener("click", async () => {
+                        try {
+                            await navigator.clipboard.writeText(rawKey);
+                            showDevFeedback("API key copied.", "success");
+                        } catch (_) {
+                            showDevFeedback("Could not copy automatically. Select and copy the key.");
+                        }
+                    });
+
+                    keyBox.appendChild(keyText);
+                    devGeneratedKey.append(warning, keyBox, copyButton);
+
+                    showDevFeedback("API key generated.", "success");
+                    await loadDeveloperKeys(appId, card);
+
+                } catch (error) {
+                    showDevFeedback("Key generation failed: " + error.message);
+                } finally {
+                    generateButton.disabled = false;
+                    generateButton.textContent = "Generate API key";
+                }
+            });
+
+            panel.append(environment, generateButton);
+
+            if (!keys.length) {
+                const empty = document.createElement("small");
+                empty.textContent = "No API keys created yet.";
+                panel.appendChild(empty);
+            }
+
+            keys.forEach(key => {
+                const keyRow = document.createElement("div");
+                keyRow.className = "dev-app";
+
+                const prefix = document.createElement("strong");
+                prefix.textContent = key.key_prefix || key.prefix || "API key";
+
+                const details = document.createElement("small");
+                details.textContent =
+                    "Environment: " + (key.environment || "Unknown") +
+                    " | Status: " + (key.status || "Unknown");
+
+                keyRow.append(prefix, details);
+
+                const keyId = getDevId(key);
+
+                if (keyId && key.status !== "revoked") {
+                    const revokeButton = document.createElement("button");
+                    revokeButton.className = "dev-button";
+                    revokeButton.style.background = "#7b3038";
+                    revokeButton.textContent = "Revoke key";
+
+                    revokeButton.addEventListener("click", async () => {
+                        if (!confirm("Revoke this API key? Applications using it will stop authenticating.")) return;
+
+                        revokeButton.disabled = true;
+
+                        try {
+                            await apiRequest(
+                                "/developer/keys/" + encodeURIComponent(keyId) + "/revoke",
+                                { method: "POST", body: JSON.stringify({}) }
+                            );
+
+                            showDevFeedback("API key revoked.", "success");
+                            await loadDeveloperKeys(appId, card);
+
+                        } catch (error) {
+                            showDevFeedback("Could not revoke key: " + error.message);
+                            revokeButton.disabled = false;
+                        }
+                    });
+
+                    keyRow.appendChild(revokeButton);
+                }
+
+                panel.appendChild(keyRow);
+            });
+
+        } catch (error) {
+            panel.textContent = "Could not load API keys: " + error.message;
+        }
+    }
     initializeApp();
 </script>
 
