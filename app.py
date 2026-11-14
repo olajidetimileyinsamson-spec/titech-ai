@@ -516,22 +516,34 @@ def should_search(query):
     return search_options(query)[0]
 
 
-def search_context(query):
+
+def search_context(query, include_usage=False):
     """
     Retrieve web sources using Tavily.
 
-    If a time-filtered search produces no results,
-    retry without the time filter.
+    Optionally return search usage metadata for Developer API billing.
+    Existing callers continue receiving the original two values.
     """
+
+    usage = {
+        "requests_attempted": 0,
+        "requests_succeeded": 0,
+        "credits_estimated": 0
+    }
+
+    def finish(sources, status):
+        if include_usage:
+            return sources, status, usage
+        return sources, status
 
     required, time_range, topic = search_options(query)
 
     if not required:
-        return [], "not_needed"
+        return finish([], "not_needed")
 
     if not tavily_client:
         print("Tavily unavailable: client not initialized.")
-        return [], "unavailable"
+        return finish([], "unavailable")
 
     sources = []
     seen_urls = set()
@@ -539,10 +551,12 @@ def search_context(query):
 
     def run_search(search_query, domains=None, use_time_filter=True):
 
+        search_depth = "advanced"
+
         options = {
             "query": search_query,
             "max_results": 6,
-            "search_depth": "advanced",
+            "search_depth": search_depth,
             "include_answer": False,
             "include_raw_content": False,
             "topic": "general" if domains else topic
@@ -554,10 +568,23 @@ def search_context(query):
         if use_time_filter and time_range:
             options["time_range"] = time_range
 
+        # Count the attempt before contacting Tavily.
+        usage["requests_attempted"] += 1
+
         result = tavily_client.search(**options)
 
         if not isinstance(result, dict):
             raise ValueError("Unexpected Tavily response format.")
+
+        # Count successful provider responses.
+        usage["requests_succeeded"] += 1
+
+        credits_per_search = {
+            "basic": 1,
+            "advanced": 2
+        }.get(search_depth, 0)
+
+        usage["credits_estimated"] += credits_per_search
 
         items = result.get("results", [])
 
@@ -614,8 +641,6 @@ def search_context(query):
 
         if is_richest_person_query(query):
 
-            # Ranking pages may be updated continuously.
-            # Do not apply a publication-date filter.
             run_search(
                 "Forbes Real-Time Billionaires current richest person "
                 "estimated net worth",
@@ -637,11 +662,8 @@ def search_context(query):
 
         else:
 
-            # First attempt: respect the requested time range.
             run_search(query, use_time_filter=True)
 
-            # Second attempt: do not let a strict date filter
-            # hide useful authoritative information.
             if not sources and time_range:
                 print(
                     "Tavily returned no time-filtered results. "
@@ -665,19 +687,20 @@ def search_context(query):
     print(
         "Tavily diagnostic:",
         "sources =", len(sources),
+        "attempted =", usage["requests_attempted"],
+        "succeeded =", usage["requests_succeeded"],
+        "estimated credits =", usage["credits_estimated"],
         "errors =", errors
     )
 
     if sources:
-        return sources[:12], "ok"
+        return finish(sources[:12], "ok")
 
     if errors:
-        return [], "failed"
+        return finish([], "failed")
 
-    return [], "no_results"
+    return finish([], "no_results")
 
-
-def search_failure_reply(status):
 
     messages = {
         "unavailable": (
