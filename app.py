@@ -2310,6 +2310,7 @@ def developer_chat_completions():
 
     prompt_tokens = 0
     completion_tokens = 0
+    cached_input_tokens = 0
     answer = ""
 
     try:
@@ -2330,15 +2331,26 @@ def developer_chat_completions():
                 or "I couldn't produce a response."
             )
 
-            usage = getattr(completion, "usage", None)
+            
+usage_obj = getattr(completion, "usage", None)
 
-            if usage:
-                prompt_tokens = int(
-                    getattr(usage, "prompt_tokens", 0) or 0
-                )
-                completion_tokens = int(
-                    getattr(usage, "completion_tokens", 0) or 0
-                )
+if usage_obj:
+    prompt_tokens = int(
+        get_usage_value(usage_obj, "prompt_tokens", 0) or 0
+    )
+
+    completion_tokens = int(
+        get_usage_value(usage_obj, "completion_tokens", 0) or 0
+    )
+
+    prompt_details = get_usage_value(
+        usage_obj, "prompt_tokens_details", {}
+    ) or {}
+
+    cached_input_tokens = int(
+        get_usage_value(prompt_details, "cached_tokens", 0) or 0
+    )
+
 
         # Record usage. Never fail a successful answer just because
         # a usage-log write failed.
