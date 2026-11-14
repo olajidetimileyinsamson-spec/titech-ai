@@ -8,6 +8,7 @@ import random
 import urllib.parse
 import base64
 import json
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from datetime import datetime, timezone
 from uuid import UUID
 from functools import wraps
@@ -139,6 +140,39 @@ if TAVILY_API_KEY:
         print("Tavily initialization failed:", type(exc).__name__)
 else:
     print("Tavily API key is missing.")
+
+# ==========================================
+# TITECH AI — PROVIDER COST CONFIGURATION
+# ==========================================
+
+def get_decimal_env(name, default=None):
+    value = os.getenv(name)
+
+    if not value:
+        return Decimal(str(default)) if default is not None else None
+
+    try:
+        return Decimal(value)
+    except (InvalidOperation, ValueError):
+        print(f"Invalid decimal environment variable: {name}")
+        return Decimal(str(default)) if default is not None else None
+
+
+GROQ_INPUT_USD_PER_MILLION = get_decimal_env(
+    "GROQ_INPUT_USD_PER_MILLION", "0.15"
+)
+
+GROQ_OUTPUT_USD_PER_MILLION = get_decimal_env(
+    "GROQ_OUTPUT_USD_PER_MILLION", "0.60"
+)
+
+TAVILY_USD_PER_CREDIT = get_decimal_env(
+    "TAVILY_USD_PER_CREDIT", "0.008"
+)
+
+USD_NGN_RATE = get_decimal_env("USD_NGN_RATE")
+
+COST_CALCULATION_VERSION = "2026-11-14-v1"
 
 
 # =========================================================
