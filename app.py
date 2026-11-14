@@ -175,6 +175,94 @@ USD_NGN_RATE = get_decimal_env("USD_NGN_RATE")
 COST_CALCULATION_VERSION = "2026-11-14-v1"
 
 
+def get_usage_value(obj, name, default=0):
+    """Read a usage field from either a dictionary or an object."""
+    if isinstance(obj, dict):
+        return obj.get(name, default)
+
+    return getattr(obj, name, default)
+
+
+def calculate_provider_costs(
+    input_tokens=0,
+    cached_input_tokens=0,
+    output_tokens=0,
+    tavily_credits=0
+):
+    """Calculate provider costs in USD micros and NGN kobo."""
+
+    input_tokens = max(0, int(input_tokens or 0))
+    cached_input_tokens = max(
+        0, min(int(cached_input_tokens or 0), input_tokens)
+    )
+    output_tokens = max(0, int(output_tokens or 0))
+    tavily_credits = max(0, int(tavily_credits or 0))
+
+    uncached_tokens = input_tokens - cached_input_tokens
+
+    effective_input_tokens = (
+        Decimal(uncached_tokens)
+        + Decimal(cached_input_tokens) * Decimal("0.5")
+    )
+
+    groq_input_micros = (
+        GROQ_INPUT_USD_PER_MILLION * effective_input_tokens
+    )
+
+    groq_output_micros = (
+        GROQ_OUTPUT_USD_PER_MILLION * Decimal(output_tokens)
+    )
+
+    groq_cost_micros = int(
+        (groq_input_micros + groq_output_micros).quantize(
+            Decimal("1"),
+            rounding=ROUND_HALF_UP
+        )
+    )
+
+    tavily_cost_micros = int(
+        (
+            TAVILY_USD_PER_CREDIT
+            * Decimal(tavily_credits)
+            * Decimal("1000000")
+        ).quantize(
+            Decimal("1"),
+            rounding=ROUND_HALF_UP
+        )
+    )
+
+    total_cost_micros = (
+        groq_cost_micros + tavily_cost_micros
+    )
+
+    ngn_kobo = None
+
+    if USD_NGN_RATE is not None:
+        ngn_kobo = int(
+            (
+                Decimal(total_cost_micros)
+                * USD_NGN_RATE
+                / Decimal("10000")
+            ).quantize(
+                Decimal("1"),
+                rounding=ROUND_HALF_UP
+            )
+        )
+
+    return {
+        "groq_cost_usd_micros": groq_cost_micros,
+        "tavily_cost_usd_micros": tavily_cost_micros,
+        "provider_cost_usd_micros": total_cost_micros,
+        "provider_cost_ngn_kobo": ngn_kobo,
+        "fx_rate_ngn_per_usd": (
+            str(USD_NGN_RATE)
+            if USD_NGN_RATE is not None else None
+        ),
+        "cost_calculation_version": COST_CALCULATION_VERSION
+    }
+
+
+
 # =========================================================
 # RATE LIMITING
 # =========================================================
@@ -2156,7 +2244,10 @@ def developer_chat_completions():
     history_rows = safe_messages[:latest_index]
 
     # Web search is independent of the application's private context.
-    found_sources, found_status = search_context(latest_message)
+    found_sources, found_status, search_usage = search_context(
+    latest_message,
+    include_usage=True
+)
 
     app_name = clean_text(application.get("name"), 100)
     app_instructions = clean_text(
