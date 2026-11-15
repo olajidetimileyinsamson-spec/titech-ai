@@ -787,7 +787,8 @@ def search_context(query, include_usage=False):
     if errors:
         return finish([], "failed")
 
-    return finish([], "no_results")
+    
+return finish([], "no_results")
     def search_failure_reply(status):
         messages = {
             "unavailable": (
@@ -833,7 +834,6 @@ def search_context(query, include_usage=False):
         status,
         "I couldn't verify the information from live sources."
     )
-
 
 def sources_prompt(sources, status):
 
@@ -2327,7 +2327,8 @@ def developer_chat_completions():
         "content": latest_message
     })
 
-    prompt_tokens = 0
+    
+prompt_tokens = 0
     completion_tokens = 0
     cached_input_tokens = 0
     answer = ""
@@ -2439,7 +2440,6 @@ db.table("titech_api_usage").insert({
         return jsonify({
             "error": "The AI service is temporarily unavailable."
         }), 502
-
 
 
 # =========================================================
