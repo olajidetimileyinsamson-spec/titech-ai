@@ -772,6 +772,7 @@ def search_context(query, include_usage=False):
             type(exc).__name__
         )
 
+    
     print(
         "Tavily diagnostic:",
         "sources =", len(sources),
@@ -781,7 +782,7 @@ def search_context(query, include_usage=False):
         "errors =", errors
     )
 
-        if sources:
+    if sources:
         return finish(sources[:12], "ok")
 
     if errors:
@@ -814,31 +815,6 @@ def search_failure_reply(status):
         "I couldn't verify the information from live sources."
     )
 
-
-    messages = {
-        "unavailable": (
-            "I need live web search to answer this accurately, "
-            "but web search is not configured right now. "
-            "I don't want to guess or give you outdated information."
-        ),
-
-        "failed": (
-            "I tried to access live web search, but the search "
-            "service failed. I can't verify the latest information "
-            "right now, so I won't invent an answer."
-        ),
-
-        "no_results": (
-            "I couldn't find usable sources for this question. "
-            "I can't verify the current information, so I won't "
-            "make up an answer."
-        )
-    }
-
-    return messages.get(
-        status,
-        "I couldn't verify the information from live sources."
-    )
 
 def sources_prompt(sources, status):
 
