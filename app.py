@@ -2373,10 +2373,10 @@ if usage_obj:
 
         # Record usage. Never fail a successful answer just because
         # a usage-log write failed.
-        try:
-            db, db_error = require_platform_database()
+try:
+    db, db_error = require_platform_database()
 
-            if not db_error:
+    if not db_error:
                 provider_costs = calculate_provider_costs(
     input_tokens=prompt_tokens,
     cached_input_tokens=cached_input_tokens,
