@@ -788,6 +788,25 @@ def search_context(query, include_usage=False):
         return finish([], "failed")
 
     return finish([], "no_results")
+    def search_failure_reply(status):
+    messages = {
+        "unavailable": (
+            "Live web search is temporarily unavailable. "
+            "Please try again shortly."
+        ),
+        "failed": (
+            "I couldn't retrieve reliable information from live web sources. "
+            "Please try again."
+        ),
+        "no_results": (
+            "I couldn't find relevant live sources for this question."
+        )
+    }
+
+    return messages.get(
+        status,
+        "I couldn't verify this information using live sources."
+    )
 
 
     messages = {
@@ -2358,18 +2377,29 @@ if usage_obj:
             db, db_error = require_platform_database()
 
             if not db_error:
-                db.table("titech_api_usage").insert({
-                    "application_id": application_id,
-                    "api_key_id": key_id,
-                    "endpoint": "chat.completions",
-                    "model": GROQ_MODEL,
-                    "request_count": 1,
-                    "input_tokens": prompt_tokens,
-                    "output_tokens": completion_tokens,
-                    "status_code": 200,
-                    "cost_minor": 0,
-                    "currency": "NGN"
-                }).execute()
+                provider_costs = calculate_provider_costs(
+    input_tokens=prompt_tokens,
+    cached_input_tokens=cached_input_tokens,
+    output_tokens=completion_tokens,
+    tavily_credits=search_usage["credits_estimated"]
+)
+
+db.table("titech_api_usage").insert({
+    "application_id": application_id,
+    "api_key_id": key_id,
+    "endpoint": "chat.completions",
+    "model": GROQ_MODEL,
+    "request_count": 1,
+    "input_tokens": prompt_tokens,
+    "output_tokens": completion_tokens,
+    "cached_input_tokens": cached_input_tokens,
+    "tavily_search_requests": search_usage["requests_succeeded"],
+    "tavily_credits": search_usage["credits_estimated"],
+    "status_code": 200,
+    "cost_minor": 0,
+    "currency": "NGN",
+    **provider_costs
+}).execute()
 
                 db.table("titech_api_keys").update({
                     "last_used_at": datetime.now(
