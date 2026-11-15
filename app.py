@@ -607,10 +607,11 @@ def should_search(query):
 
 def search_context(query, include_usage=False):
     """
-    Retrieve web sources using Tavily.
+    Retrieve and rank web sources using Tavily.
 
-    Optionally return search usage metadata for Developer API billing.
-    Existing callers continue receiving the original two values.
+    Prioritises official/primary sources and established news.
+    Runs a targeted fallback search when the initial results
+    do not contain enough credible sources.
     """
 
     usage = {
@@ -637,8 +638,87 @@ def search_context(query, include_usage=False):
     seen_urls = set()
     errors = []
 
-    def run_search(search_query, domains=None, use_time_filter=True):
+    trusted_news_domains = [
+        "reuters.com",
+        "apnews.com",
+        "bbc.com",
+        "aljazeera.com",
+        "dw.com"
+    ]
 
+    primary_domains = {
+        "who.int",
+        "un.org",
+        "worldbank.org",
+        "imf.org",
+        "unicef.org",
+        "afdb.org",
+        "ecowas.int",
+        "au.int",
+        "europa.eu",
+        "nasa.gov"
+    }
+
+    trusted_news = {
+        "reuters.com",
+        "apnews.com",
+        "bbc.com",
+        "aljazeera.com",
+        "dw.com",
+        "theguardian.com",
+        "ft.com",
+        "nytimes.com",
+        "washingtonpost.com",
+        "bloomberg.com",
+        "cnn.com",
+        "cnbc.com"
+    }
+
+    social_domains = {
+        "facebook.com",
+        "www.facebook.com",
+        "tiktok.com",
+        "www.tiktok.com",
+        "x.com",
+        "twitter.com",
+        "instagram.com",
+        "reddit.com",
+        "youtube.com",
+        "youtu.be"
+    }
+
+    def classify_source(hostname):
+        host = (hostname or "").lower().strip(".")
+        host = host.removeprefix("www.")
+
+        if (
+            host in primary_domains
+            or host.endswith(".gov")
+            or ".gov." in host
+            or host.endswith(".edu")
+            or host.endswith(".ac.uk")
+        ):
+            return "primary", 3
+
+        if (
+            host in trusted_news
+            or any(host.endswith("." + domain) for domain in trusted_news)
+        ):
+            return "established_news", 2
+
+        if (
+            host in social_domains
+            or any(host.endswith("." + domain) for domain in social_domains)
+        ):
+            return "social_media", 0
+
+        return "other", 1
+
+    def run_search(
+        search_query,
+        domains=None,
+        use_time_filter=True
+    ):
         search_depth = "advanced"
 
         options = {
@@ -656,79 +736,107 @@ def search_context(query, include_usage=False):
         if use_time_filter and time_range:
             options["time_range"] = time_range
 
-        # Count the attempt before contacting Tavily.
         usage["requests_attempted"] += 1
 
-        result = tavily_client.search(**options)
+        try:
+            result = tavily_client.search(**options)
 
-        if not isinstance(result, dict):
-            raise ValueError("Unexpected Tavily response format.")
+            if not isinstance(result, dict):
+                raise ValueError(
+                    "Unexpected Tavily response format."
+                )
 
-        # Count successful provider responses.
-        usage["requests_succeeded"] += 1
+            usage["requests_succeeded"] += 1
 
-        credits_per_search = {
-            "basic": 1,
-            "advanced": 2
-        }.get(search_depth, 0)
+            credits_per_search = {
+                "basic": 1,
+                "advanced": 2
+            }.get(search_depth, 0)
 
-        usage["credits_estimated"] += credits_per_search
+            usage["credits_estimated"] += credits_per_search
 
-        items = result.get("results", [])
+            items = result.get("results", [])
 
-        for item in items:
+            if not isinstance(items, list):
+                return
 
-            if not isinstance(item, dict):
-                continue
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
 
-            url = clean_text(item.get("url", ""), 1000)
+                url = clean_text(
+                    item.get("url", ""),
+                    1000
+                )
 
-            parsed_url = urllib.parse.urlparse(url)
+                parsed_url = urllib.parse.urlparse(url)
 
-            if (
-                parsed_url.scheme not in ("https", "http")
-                or not parsed_url.hostname
-                or parsed_url.username
-                or parsed_url.password
-                or url in seen_urls
-            ):
-                continue
+                if (
+                    parsed_url.scheme not in ("https", "http")
+                    or not parsed_url.hostname
+                    or parsed_url.username
+                    or parsed_url.password
+                    or url in seen_urls
+                ):
+                    continue
 
-            snippet = clean_text(
-                item.get("content", ""),
-                1200
+                snippet = clean_text(
+                    item.get("content", ""),
+                    1200
+                )
+
+                if not snippet:
+                    continue
+
+                seen_urls.add(url)
+
+                domain = parsed_url.hostname.lower()
+                quality, quality_rank = classify_source(domain)
+
+                sources.append({
+                    "title": clean_text(
+                        item.get("title", "Source"),
+                        200
+                    ) or "Source",
+
+                    "url": url,
+
+                    "domain": domain,
+
+                    "published_date": clean_text(
+                        item.get("published_date", "")
+                        or item.get("date", ""),
+                        60
+                    ),
+
+                    "snippet": snippet,
+
+                    "relevance_score": item.get("score"),
+
+                    "source_quality": quality,
+
+                    "_quality_rank": quality_rank
+                })
+
+        except Exception as exc:
+            errors.append(type(exc).__name__)
+
+            print(
+                "Tavily request failed:",
+                type(exc).__name__
             )
 
-            if not snippet:
-                continue
-
-            seen_urls.add(url)
-
-            sources.append({
-                "title": clean_text(
-                    item.get("title", "Source"),
-                    200
-                ) or "Source",
-
-                "url": url,
-
-                "domain": parsed_url.hostname.lower(),
-
-                "published_date": clean_text(
-                    item.get("published_date", "")
-                    or item.get("date", ""),
-                    60
-                ),
-
-                "snippet": snippet,
-
-                "relevance_score": item.get("score")
-            })
+    def count_priority_sources():
+        return sum(
+            1 for source in sources
+            if source["source_quality"] in (
+                "primary",
+                "established_news"
+            )
+        )
 
     try:
-
         if is_richest_person_query(query):
-
             run_search(
                 "Forbes Real-Time Billionaires current richest person "
                 "estimated net worth",
@@ -749,13 +857,16 @@ def search_context(query, include_usage=False):
             )
 
         else:
+            run_search(
+                query,
+                use_time_filter=True
+            )
 
-            run_search(query, use_time_filter=True)
-
+            # Retry without the time filter if the first search
+            # produced no usable results.
             if not sources and time_range:
                 print(
-                    "Tavily returned no time-filtered results. "
-                    "Retrying without time filter."
+                    "Retrying Tavily without the time filter."
                 )
 
                 run_search(
@@ -763,19 +874,50 @@ def search_context(query, include_usage=False):
                     use_time_filter=False
                 )
 
-    except Exception as exc:
+        # A non-empty result is not automatically a reliable result.
+        # Search reputable news sources if fewer than two priority
+        # sources were found.
+        if count_priority_sources() < 2:
+            print(
+                "Insufficient priority sources. "
+                "Running targeted reputable-news search."
+            )
 
+            run_search(
+                query,
+                domains=trusted_news_domains,
+                use_time_filter=False
+            )
+
+    except Exception as exc:
+        # Keep unexpected errors from crashing the chat request.
         errors.append(type(exc).__name__)
 
         print(
-            "Tavily search failed:",
+            "Tavily search process failed:",
             type(exc).__name__
         )
 
-    
+    # Rank primary sources first, established news second,
+    # other sources third, and social media last.
+    def relevance_value(source):
+        try:
+            return float(source.get("relevance_score") or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    sources.sort(
+        key=lambda source: (
+            source["_quality_rank"],
+            relevance_value(source)
+        ),
+        reverse=True
+    )
+
     print(
         "Tavily diagnostic:",
         "sources =", len(sources),
+        "priority sources =", count_priority_sources(),
         "attempted =", usage["requests_attempted"],
         "succeeded =", usage["requests_succeeded"],
         "estimated credits =", usage["credits_estimated"],
@@ -789,6 +931,8 @@ def search_context(query, include_usage=False):
         return finish([], "failed")
 
     return finish([], "no_results")
+
+
 
 
 def search_failure_reply(status):
@@ -814,7 +958,6 @@ def search_failure_reply(status):
         status,
         "I couldn't verify the information from live sources."
     )
-
 
 def sources_prompt(sources, status):
 
@@ -873,6 +1016,7 @@ WEB RESEARCH INSTRUCTIONS:
         + "\n\nRETRIEVED WEB SOURCES:\n\n"
         + "\n\n".join(lines)
     )
+
 
 
 
