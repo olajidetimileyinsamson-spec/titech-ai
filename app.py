@@ -781,32 +781,37 @@ def search_context(query, include_usage=False):
         "errors =", errors
     )
 
-    if sources:
+        if sources:
         return finish(sources[:12], "ok")
 
     if errors:
         return finish([], "failed")
 
-    
-return finish([], "no_results")
+    return finish([], "no_results")
+
+
 def search_failure_reply(status):
-        messages = {
-            "unavailable": (
-                "Live web search is temporarily unavailable. "
-                "Please try again shortly."
+    messages = {
+        "unavailable": (
+            "I need live web search to answer this accurately, "
+            "but web search is not configured right now. "
+            "I don't want to guess or give you outdated information."
         ),
         "failed": (
-            "I couldn't retrieve reliable information from live web sources. "
-            "Please try again."
+            "I tried to access live web search, but the search "
+            "service failed. I can't verify the latest information "
+            "right now, so I won't invent an answer."
         ),
         "no_results": (
-            "I couldn't find relevant live sources for this question."
+            "I couldn't find usable sources for this question. "
+            "I can't verify the current information, so I won't "
+            "make up an answer."
         )
     }
 
     return messages.get(
         status,
-        "I couldn't verify this information using live sources."
+        "I couldn't verify the information from live sources."
     )
 
 
@@ -2327,8 +2332,7 @@ def developer_chat_completions():
         "content": latest_message
     })
 
-    
-prompt_tokens = 0
+    prompt_tokens = 0
     completion_tokens = 0
     cached_input_tokens = 0
     answer = ""
@@ -2351,56 +2355,60 @@ prompt_tokens = 0
                 or "I couldn't produce a response."
             )
 
-            
-usage_obj = getattr(completion, "usage", None)
+            usage_obj = getattr(completion, "usage", None)
 
-if usage_obj:
-    prompt_tokens = int(
-        get_usage_value(usage_obj, "prompt_tokens", 0) or 0
-    )
+            if usage_obj:
+                prompt_tokens = int(
+                    get_usage_value(
+                        usage_obj, "prompt_tokens", 0
+                    ) or 0
+                )
 
-    completion_tokens = int(
-        get_usage_value(usage_obj, "completion_tokens", 0) or 0
-    )
+                completion_tokens = int(
+                    get_usage_value(
+                        usage_obj, "completion_tokens", 0
+                    ) or 0
+                )
 
-    prompt_details = get_usage_value(
-        usage_obj, "prompt_tokens_details", {}
-    ) or {}
+                prompt_details = get_usage_value(
+                    usage_obj, "prompt_tokens_details", {}
+                ) or {}
 
-    cached_input_tokens = int(
-        get_usage_value(prompt_details, "cached_tokens", 0) or 0
-    )
+                cached_input_tokens = int(
+                    get_usage_value(
+                        prompt_details, "cached_tokens", 0
+                    ) or 0
+                )
 
+        # Record usage without failing a successful answer
+        # if the logging operation encounters an error.
+        try:
+            db, db_error = require_platform_database()
 
-        # Record usage. Never fail a successful answer just because
-        # a usage-log write failed.
-try:
-    db, db_error = require_platform_database()
-
-    if not db_error:
+            if not db_error:
                 provider_costs = calculate_provider_costs(
-    input_tokens=prompt_tokens,
-    cached_input_tokens=cached_input_tokens,
-    output_tokens=completion_tokens,
-    tavily_credits=search_usage["credits_estimated"]
-)
+                    input_tokens=prompt_tokens,
+                    cached_input_tokens=cached_input_tokens,
+                    output_tokens=completion_tokens,
+                    tavily_credits=search_usage["credits_estimated"]
+                )
 
-db.table("titech_api_usage").insert({
-    "application_id": application_id,
-    "api_key_id": key_id,
-    "endpoint": "chat.completions",
-    "model": GROQ_MODEL,
-    "request_count": 1,
-    "input_tokens": prompt_tokens,
-    "output_tokens": completion_tokens,
-    "cached_input_tokens": cached_input_tokens,
-    "tavily_search_requests": search_usage["requests_succeeded"],
-    "tavily_credits": search_usage["credits_estimated"],
-    "status_code": 200,
-    "cost_minor": 0,
-    "currency": "NGN",
-    **provider_costs
-}).execute()
+                db.table("titech_api_usage").insert({
+                    "application_id": application_id,
+                    "api_key_id": key_id,
+                    "endpoint": "chat.completions",
+                    "model": GROQ_MODEL,
+                    "request_count": 1,
+                    "input_tokens": prompt_tokens,
+                    "output_tokens": completion_tokens,
+                    "cached_input_tokens": cached_input_tokens,
+                    "tavily_search_requests": search_usage["requests_succeeded"],
+                    "tavily_credits": search_usage["credits_estimated"],
+                    "status_code": 200,
+                    "cost_minor": 0,
+                    "currency": "NGN",
+                    **provider_costs
+                }).execute()
 
                 db.table("titech_api_keys").update({
                     "last_used_at": datetime.now(
@@ -2434,6 +2442,7 @@ db.table("titech_api_usage").insert({
             "sources": found_sources,
             "search_status": found_status
         })
+
 
     except Exception as exc:
         print("Developer API model error:", type(exc).__name__)
