@@ -789,10 +789,10 @@ def search_context(query, include_usage=False):
 
     return finish([], "no_results")
     def search_failure_reply(status):
-    messages = {
-        "unavailable": (
-            "Live web search is temporarily unavailable. "
-            "Please try again shortly."
+        messages = {
+            "unavailable": (
+                "Live web search is temporarily unavailable. "
+                "Please try again shortly."
         ),
         "failed": (
             "I couldn't retrieve reliable information from live web sources. "
