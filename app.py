@@ -2539,9 +2539,9 @@ def developer_chat_completions():
 
         except Exception as log_exc:
             print(
-                "Developer API usage logging error:",
-                type(log_exc).__name__
-            )
+    "Developer API usage logging error:",
+    repr(log_exc)
+)
 
         return jsonify({
             "id": "titech-" + secrets.token_hex(8),
