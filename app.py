@@ -2541,7 +2541,7 @@ def developer_chat_completions():
             print(
     "Developer API usage logging error:",
     repr(log_exc)
-)
+    )
 
         return jsonify({
             "id": "titech-" + secrets.token_hex(8),
