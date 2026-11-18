@@ -2323,13 +2323,13 @@ def authenticate_developer_api_key():
 
 # Customer-facing API rates. These are configurable test rates, not public pricing.
 TITECH_INPUT_NGN_PER_MILLION = get_decimal_env(
-    "TITECH_INPUT_NGN_PER_MILLION", "300"
+    "TITECH_INPUT_NGN_PER_MILLION", "400"
 )
 TITECH_OUTPUT_NGN_PER_MILLION = get_decimal_env(
-    "TITECH_OUTPUT_NGN_PER_MILLION", "1200"
+    "TITECH_OUTPUT_NGN_PER_MILLION", "1500"
 )
 TITECH_ADVANCED_SEARCH_NGN = get_decimal_env(
-    "TITECH_ADVANCED_SEARCH_NGN", "30"
+    "TITECH_ADVANCED_SEARCH_NGN", "40"
 )
 
 
